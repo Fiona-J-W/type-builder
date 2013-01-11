@@ -90,5 +90,7 @@ int main(){
 	// this works like a charm:
 	point p(x, y);
 
+	// use p
+}
 ```
 
