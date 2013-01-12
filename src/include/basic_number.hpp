@@ -157,42 +157,42 @@ class basic_number{
 		inline bool operator==(const Tother& other) const{
 			static_assert(flags & ENABLE_EQUALITY_CHECK,
 					"invalud comparission of number type");
-			return value == other.value;
+			return value == other;
 		}
 		
 		template<typename Tother>
 		inline bool operator!=(const Tother& other) const{
 			static_assert(flags & ENABLE_EQUALITY_CHECK,
 					"invalud comparission of number type");
-			return value != other.value;
+			return value != other;
 		}
 		
 		template<typename Tother>
 		inline bool operator<(const Tother& other) const{
 			static_assert(flags & ENABLE_ORDERING,
 					"invalud comparission of number type");
-			return value < other.value;
+			return value < other;
 		}
 		
 		template<typename Tother>
 		inline bool operator<=(const Tother& other) const{
 			static_assert(flags & ENABLE_ORDERING,
 					"invalud comparission of number type");
-			return value <= other.value;
+			return value <= other;
 		}
 		
 		template<typename Tother>
 		inline bool operator>(const Tother& other) const{
 			static_assert(flags & ENABLE_ORDERING,
 					"invalud comparission of number type");
-			return value > other.value;
+			return value > other;
 		}
 		
 		template<typename Tother>
 		inline bool operator>=(const Tother& other) const{
 			static_assert(flags & ENABLE_ORDERING,
 					"invalud comparission of number type");
-			return value >= other.value;
+			return value >= other;
 		}
 		
 		inline basic_number& operator++(){
@@ -301,7 +301,7 @@ class basic_number{
 		inline basic_number operator+(const Tother& other) const{
 			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
 					"addition not enabled for this type");
-			return basic_number(static_cast<T>(value + other.value));
+			return basic_number(static_cast<T>(value + other));
 		}
 		
 		template<typename Tother>
@@ -319,7 +319,7 @@ class basic_number{
 		inline basic_number operator-(const Tother& other) const{
 			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
 					"subtraction not enabled for this type");
-			return basic_number(static_cast<T>(value - other.value));
+			return basic_number(static_cast<T>(value - other));
 		}
 		
 		template<typename Tother>
@@ -341,7 +341,7 @@ class basic_number{
 					|| (std::is_integral<Tother>::value &&
 						flags & ENABLE_INTEGER_MULTIPLICATION),
 					"multiplication not enabled for this type");
-			return basic_number(static_cast<T>(value * other.value));
+			return basic_number(static_cast<T>(value * other));
 		}
 		
 		template<typename Tother>
@@ -367,7 +367,7 @@ class basic_number{
 					|| (std::is_integral<Tother>::value &&
 						flags & ENABLE_INTEGER_DIVISION),
 					"division not enabled for this type");
-			return basic_number(static_cast<T>(value / other.value));
+			return basic_number(static_cast<T>(value / other));
 		}
 		
 		template<typename Tother>
@@ -391,7 +391,7 @@ class basic_number{
 			static_assert(flags & ENABLE_SPECIFIC_MODULO,
 					"calculating the modulo of this numbertype is not"
 					"enabled");
-			return basic_number(value % other.value);
+			return basic_number(value % other);
 		}
 		
 		inline basic_number& operator%=(const basic_number& other){
@@ -403,7 +403,7 @@ class basic_number{
 			static_assert(flags & ENABLE_SPECIFIC_MODULO,
 					"calculating the modulo of this numbertype is not"
 					"enabled");
-			value %= other.value;
+			value %= other;
 			return *this;
 		}
 		
@@ -414,7 +414,7 @@ class basic_number{
 			static_assert(flags & ENABLE_MODULO,
 					"calculating the modulo of this numbertype is not"
 					"enabled");
-			return basic_number(value % other.value);
+			return basic_number(value % other);
 		}
 		
 		template<typename Tother>
@@ -427,7 +427,7 @@ class basic_number{
 			static_assert(flags & ENABLE_MODULO,
 					"calculating the modulo of this numbertype is not"
 					"enabled");
-			value %= other.value;
+			value %= other;
 			return *this;
 		}
 		///////////////////////////////////////////////
