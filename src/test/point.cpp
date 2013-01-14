@@ -5,7 +5,6 @@
 enum: uint64_t{
 	COORD_SETTINGS = type_builder::DEFAULT_SETTINGS
 		| type_builder::ENABLE_FLOAT_MULT_DIV
-		| type_builder::ENABLE_LATE_ASSIGNEMENT
 };
 
 template<typename T>

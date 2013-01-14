@@ -13,10 +13,12 @@ SRC_DIR="src/test/"
 for FILE in $(find $SRC_DIR -type f -iname "*.cpp"); do
 	BASENAME=$(basename -s ".cpp" $FILE)
 	TARGET="$BINDIR/BASENAME"
-	if [[ ($FILE -ot $TARGET) ]]; then
+	if [[ ! -f $TARGET || $FILE -nt $TARGET ]]; then
 		echo "compiling $BASENAME "
-		$CXX $CFLAGS $FILE -o "$BINDIR/$BASENAME" 2>&1 > /dev/null | sed "s/^/\t/"
+		$CXX $CFLAGS $FILE -o $TARGET 2>&1 > /dev/null | sed "s/^/\t/"
 		echo "done"
+	else
+		echo "skipping $FILE"
 	fi
 done
 #$CXX $CFLAGS 
