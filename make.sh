@@ -12,8 +12,11 @@ SRC_DIR="src/test/"
 
 for FILE in $(find $SRC_DIR -type f -iname "*.cpp"); do
 	BASENAME=$(basename -s ".cpp" $FILE)
-	echo "compiling $BASENAME "
-	$CXX $CFLAGS $FILE -o "$BINDIR/$BASENAME" 2>&1 > /dev/null | sed "s/^/\t/"
-	echo "done"
+	TARGET="$BINDIR/BASENAME"
+	if [[ ($FILE -ot $TARGET) ]]; then
+		echo "compiling $BASENAME "
+		$CXX $CFLAGS $FILE -o "$BINDIR/$BASENAME" 2>&1 > /dev/null | sed "s/^/\t/"
+		echo "done"
+	fi
 done
 #$CXX $CFLAGS 
