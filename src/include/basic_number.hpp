@@ -1,8 +1,14 @@
+#ifndef BASIC_NUMBER_HPP
+#define BASIC_NUMBER_HPP
+
+#include <utility>
 #include <cstdint>
 #include <ostream>
 #include <istream>
 #include <string>
 #include <type_traits>
+
+#include "policy_types.hpp"
 
 namespace type_builder{
 
@@ -58,413 +64,504 @@ enum: uint64_t{
 		| ENABLE_ALL_MATH
 };
 
-template<typename T, int ID, uint64_t flags = DEFAULT_SETTINGS>
-class basic_number{
+template<
+	typename T,
+	int Tid,
+	uint64_t Tflags = DEFAULT_SETTINGS,
+	class Tbase = empty_base
+>
+class basic_number: public Tbase {
+	
+	//this template is used to check, whether a type is equal enough
+	//to the instanciation of the class-template:
+	template<typename Targ> struct is_this{ 
+		enum{value = (std::is_same<const basic_number&,const Targ&>::value || std::is_same<basic_number&, Targ&>::value)
+		};
+	};
+	
 	public:
 		
+		// constructors:
+		
 		basic_number() : value(0) {
-			static_assert( !(flags & DISABLE_CONSTRUCTION), 
+			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
-			static_assert( flags & ENABLE_DEFAULT_CONSTRUCTION,
+			static_assert( Tflags & ENABLE_DEFAULT_CONSTRUCTION,
 					"default constructor not enabled for this type");
 		}
 		
 		explicit basic_number(T value): value(value){
-			static_assert( !(flags & DISABLE_CONSTRUCTION), 
+			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 		}
 		
 		basic_number(const basic_number& other): value(other.value){
-			static_assert( !(flags & DISABLE_CONSTRUCTION), 
+			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
+					"construction of this type is disabled");
+		}
+		
+		basic_number(basic_number&& other): value(std::move(other.value)){
+			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 		}
 		
 		template<typename Tother>
-		explicit basic_number(Tother value ): value(value){ 
-			static_assert( !(flags & DISABLE_CONSTRUCTION), 
+		explicit basic_number(const Tother& value): value(value){ 
+			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
-			static_assert(flags & ENABLE_GENERAL_CONSTRUCTION, 
+			static_assert(Tflags & ENABLE_GENERAL_CONSTRUCTION, 
 					"invalid construction of number type"); 
 		}
 		
-		inline basic_number& operator=(const basic_number& other) {
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			//this shouldn't be a problem in case of self-assignement:
-			value = other.value;
+		// methods:
+		
+		// *this = basic_number
+		template<typename Tother> 
+		typename std::enable_if<
+			is_this<Tother>::value
+			&& (!(Tflags & DISABLE_MUTABILITY)),
+		basic_number&>::type
+		operator=(Tother&& other){
+			// we should check for self-assignement:
+			if(this != &other){
+				this->value = std::forward<Tother>(other).value;
+			}
 			return *this;
 		}
 		
-		inline basic_number& operator=(T value){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_LATE_ASSIGNEMENT,
-					"invalid assignement to numer type");
-			this->value = static_cast<T>(value);
+		// *this = T
+		template<typename Tother> 
+		typename std::enable_if<
+			!is_this<Tother>::value 
+			&& (!(Tflags & DISABLE_MUTABILITY))
+			&& (Tflags & ENABLE_LATE_ASSIGNEMENT),
+		basic_number&>::type
+		operator=(Tother&& other){
+			this->value = std::forward<Tother>(other.value);
 			return *this;
 		}
 		
+		// *this = Tother
 		template<typename Tother>
-		inline basic_number& operator=(Tother value){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_LATE_ASSIGNEMENT &&
-					flags & ENABLE_GENERAL_CONSTRUCTION,
-					"invalid assignement to numer type");
-			this->value = static_cast<T>(value);
+		typename std::enable_if< 
+			!is_this<Tother>::value
+			&& !(std::is_same<T&, Tother&>::value)
+			&& (Tflags & ENABLE_LATE_ASSIGNEMENT)
+			&& (Tflags & ENABLE_GENERAL_CONSTRUCTION),
+		basic_number&>::type
+		operator=(Tother&& value){
+			this->value = std::forward<Tother>(value);
 			return *this;
 		}
 		
-		inline bool operator==(const basic_number& other) const{
-			static_assert(flags & ENABLE_EQUALITY_CHECK,
-					"invalud comparission of number type");
+		// *this == basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_EQUALITY_CHECK), bool>::type
+		operator==(Tother&& other) const{
 			return value == other.value;
 		}
 		
-		inline bool operator!=(const basic_number& other) const{
-			static_assert(flags & ENABLE_EQUALITY_CHECK,
-					"invalud comparission of number type");
+		// *this == Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_EQUALITY_CHECK), bool>::type
+		operator==(Tother&& other) const{
+			return value == other;
+		}
+				
+		// *this != basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_EQUALITY_CHECK), bool>::type
+		operator!=(Tother&& other) const{
 			return value != other.value;
 		}
 		
-		inline bool operator<(const basic_number& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
+		// *this != Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_EQUALITY_CHECK), bool>::type
+		operator!=(Tother&& other) const{
+			return value != other;
+		}
+
+		// *this < basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator<(Tother&& other) const{
 			return value < other.value;
 		}
 		
-		inline bool operator<=(const basic_number& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
-			return value <= other.value;
-		}
-		
-		inline bool operator>(const basic_number& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
-			return value > other.value;
-		}
-		
-		inline bool operator>=(const basic_number& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
-			return value >= other.value;
-		}
-		
-		template<typename Tother>
-		inline bool operator==(const Tother& other) const{
-			static_assert(flags & ENABLE_EQUALITY_CHECK,
-					"invalud comparission of number type");
-			return value == other;
-		}
-		
-		template<typename Tother>
-		inline bool operator!=(const Tother& other) const{
-			static_assert(flags & ENABLE_EQUALITY_CHECK,
-					"invalud comparission of number type");
-			return value != other;
-		}
-		
-		template<typename Tother>
-		inline bool operator<(const Tother& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
+		// *this < Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator<(Tother&& other) const{
 			return value < other;
 		}
 		
-		template<typename Tother>
-		inline bool operator<=(const Tother& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
+		
+		// *this <= basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator<=(Tother&& other) const{
+			return value <= other.value;
+		}
+		
+		// *this <= Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator<=(Tother&& other) const{
 			return value <= other;
 		}
 		
-		template<typename Tother>
-		inline bool operator>(const Tother& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
+		// *this > basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator>(Tother&& other) const{
+			return value > other.value;
+		}
+		
+		// *this > Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator>(Tother&& other) const{
 			return value > other;
 		}
 		
-		template<typename Tother>
-		inline bool operator>=(const Tother& other) const{
-			static_assert(flags & ENABLE_ORDERING,
-					"invalud comparission of number type");
+		
+		// *this >= basic_number
+		template <typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator>=(Tother&& other) const{
+			return value >= other.value;
+		}
+		
+		// *this >= Tother
+		template <typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_ORDERING), bool>::type
+		operator>=(Tother&& other) const{
 			return value >= other;
 		}
 		
-		inline basic_number& operator++(){
-			static_assert( !(flags & DISABLE_MUTABILITY),
+		basic_number& operator++(){
+			static_assert( !(Tflags & DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flags & ENABLE_INC_DEC,
+			static_assert(Tflags & ENABLE_INC_DEC,
 					"increment not enabled for this number-type");
 			++value;
 			return *this;
 		}
 		
-		inline basic_number operator++(int){
-			static_assert( !(flags & DISABLE_MUTABILITY),
+		basic_number operator++(int){
+			static_assert( !(Tflags & DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flags & ENABLE_INC_DEC,
+			static_assert(Tflags & ENABLE_INC_DEC,
 					"increment not enabled for this number-type");
 			return basic_number(value++);
 		}
 		
-		inline basic_number& operator--(){
-			static_assert( !(flags & DISABLE_MUTABILITY),
+		basic_number& operator--(){
+			static_assert( !(Tflags & DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flags & ENABLE_INC_DEC,
+			static_assert(Tflags & ENABLE_INC_DEC,
 					"increment not enabled for this number-type");
 			--value;
 			return *this;
 		}
 		
-		inline basic_number operator--(int){
-			static_assert( !(flags & DISABLE_MUTABILITY),
+		basic_number operator--(int){
+			static_assert( !(Tflags & DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flags & ENABLE_INC_DEC,
+			static_assert(Tflags & ENABLE_INC_DEC,
 					"increment not enabled for this number-type");
 			return basic_number(value--);
 		}
 		
-		inline basic_number operator+(const basic_number& other) const{
-			static_assert(flags & ENABLE_SPECIFIC_PLUS_MINUS,
-					"addition not enabled for this type");
-			return basic_number(value + other.value);
+		
+		// *this + basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_SPECIFIC_PLUS_MINUS), basic_number>::type
+		operator+(Tother&& other) const{
+			return basic_number{static_cast<T>(value + other.value)};
 		}
 		
-		inline basic_number& operator+=(const basic_number& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_SPECIFIC_PLUS_MINUS,
-					"addition not enabled for this type");
+		// *this + Tother
+		template<typename Tother>
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_GENERAL_PLUS_MINUS), basic_number>::type
+		operator+(Tother&& other) const{
+			return basic_number{static_cast<T>(value + other)};
+		}
+		
+		// *this += basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_SPECIFIC_PLUS_MINUS), basic_number&>::type
+		operator+=(Tother&& other){
 			value += other.value;
 			return *this;
 		}
 		
-		inline basic_number operator-(const basic_number& other) const{
-			static_assert(flags & ENABLE_SPECIFIC_PLUS_MINUS,
-					"subtraction not enabled for this type");
-			return basic_number(value - other.value);
-		}
-		
-		inline basic_number& operator-=(const basic_number& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_SPECIFIC_PLUS_MINUS,
-					"subtraction not enabled for this type");
-			value -= other.value;
-			return *this;
-		}
-		
-		inline basic_number operator*(const basic_number& other) const{
-			static_assert(flags & ENABLE_SPECIFIC_MULTIPLICATION,
-					"multiplication not enabled for this type");
-			return basic_number(value * other.value);
-		}
-		
-		inline basic_number operator*=(const basic_number& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_SPECIFIC_MULTIPLICATION,
-					"multiplication not enabled for this type");
-			value *= other.value;
-			return *this;
-		}
-		
-		inline basic_number operator/(const basic_number& other) const{
-			static_assert(flags & ENABLE_SPECIFIC_DIVISION,
-					"division not enabled for this type");
-			return basic_number(value / other.value);
-		}
-		
-		inline basic_number operator/=(const basic_number& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_SPECIFIC_DIVISION,
-					"division not enabled for this type");
-			value /= other.value;
-			return *this;
-		}
-		
+		// *this += Tother
 		template<typename Tother>
-		inline basic_number operator+(const Tother& other) const{
-			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
-					"addition not enabled for this type");
-			return basic_number(static_cast<T>(value + other));
-		}
-		
-		template<typename Tother>
-		inline basic_number& operator+=(const Tother& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
-					"addition not enabled for this type");
+		typename std::enable_if< !is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_GENERAL_PLUS_MINUS), basic_number&>::type
+		operator+=(const Tother& other){
 			value += other;
 			return *this;
 		}
 		
+		// *this - basic_number
 		template<typename Tother>
-		inline basic_number operator-(const Tother& other) const{
-			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
-					"subtraction not enabled for this type");
-			return basic_number(static_cast<T>(value - other));
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_SPECIFIC_PLUS_MINUS), basic_number>::type
+		operator-(Tother&& other) const{
+			return basic_number{static_cast<T>(value - other.value)};
 		}
 		
+		// *this - Tother
 		template<typename Tother>
-		inline basic_number& operator-=(const Tother& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_GENERAL_PLUS_MINUS,
-					"subtraction not enabled for this type");
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& (Tflags & ENABLE_GENERAL_PLUS_MINUS), basic_number>::type
+		operator-(Tother&& other) const{
+			return basic_number{static_cast<T>(value - other)};
+		}
+		
+		// *this -= basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_SPECIFIC_PLUS_MINUS), basic_number&>::type
+		operator-=(Tother&& other){
+			value -= other.value;
+			return *this;
+		}
+		
+		// *this -= Tother
+		template<typename Tother>
+		typename std::enable_if< !is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_GENERAL_PLUS_MINUS), basic_number&>::type
+		operator-=(const Tother& other){
 			value -= other;
 			return *this;
 		}
 		
+		// *this * basic_number
 		template<typename Tother>
-		inline basic_number operator*(const Tother& other) const{
-			static_assert(flags & ENABLE_GENERAL_MULTIPLICATION
-					|| (std::is_floating_point<Tother>:: value &&
-						flags & ENABLE_FLOAT_MULTIPLICATION)
-					|| (std::is_integral<Tother>::value &&
-						flags & ENABLE_INTEGER_MULTIPLICATION),
-					"multiplication not enabled for this type");
-			return basic_number(static_cast<T>(value * other));
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_SPECIFIC_MULTIPLICATION), basic_number>::type
+		operator*(Tother&& other) const{
+			return basic_number{static_cast<T>(value * other.value)};
 		}
 		
+		// *this * Tother
 		template<typename Tother>
-		inline basic_number& operator*=(const Tother& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert( (flags & ENABLE_GENERAL_MULTIPLICATION)
-					|| (std::is_floating_point<Tother>::value &&
-						(flags & ENABLE_FLOAT_MULTIPLICATION))
-					|| (std::is_integral<Tother>::value &&
-						flags & ENABLE_INTEGER_MULTIPLICATION),
-					"multiplication not enabled for this type");
-			value *= other;
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& ((Tflags & ENABLE_GENERAL_MULTIPLICATION)
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+					&& (Tflags & ENABLE_FLOAT_MULTIPLICATION))
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+					&& (Tflags & ENABLE_INTEGER_MULTIPLICATION))
+			), basic_number>::type
+		operator*(Tother&& other) const{
+			return basic_number{static_cast<T>(value * other)};
+		}
+		
+		// *this *= basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_SPECIFIC_MULTIPLICATION), basic_number&>::type
+		operator*=(Tother&& other){
+			value *= other.value;
 			return *this;
 		}
 		
+		// *this *= Tother
 		template<typename Tother>
-		inline basic_number operator/(const Tother& other) const{
-			static_assert(flags & ENABLE_GENERAL_DIVISION 
-					|| (std::is_floating_point<Tother>:: value &&
-						flags & ENABLE_FLOAT_DIVISION)
-					|| (std::is_integral<Tother>::value &&
-						flags & ENABLE_INTEGER_DIVISION),
-					"division not enabled for this type");
-			return basic_number(static_cast<T>(value / other));
+		typename std::enable_if< !is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& ((Tflags & ENABLE_GENERAL_MULTIPLICATION)
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+					&& Tflags & ENABLE_FLOAT_MULTIPLICATION)
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+					&& Tflags & ENABLE_INTEGER_MULTIPLICATION)
+			), basic_number&>::type
+		operator*=(Tother&& other){
+			value *= other;
+			return *this;
+		}
+
+				
+		// *this / basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& (Tflags & ENABLE_SPECIFIC_DIVISION), basic_number>::type
+		operator/(Tother&& other) const{
+			return basic_number{static_cast<T>(value / other.value)};
 		}
 		
+		// *this / Tother
 		template<typename Tother>
-		inline basic_number operator/=(const Tother& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(flags & ENABLE_GENERAL_DIVISION 
-					|| (std::is_floating_point<Tother>:: value &&
-						flags & ENABLE_FLOAT_DIVISION)
-					|| (std::is_integral<Tother>::value &&
-						flags & ENABLE_INTEGER_DIVISION),
-					"division not enabled for this type");
+		typename std::enable_if< !(is_this<Tother>::value)
+			&& ((Tflags & ENABLE_GENERAL_DIVISION)
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+					&& (Tflags & ENABLE_FLOAT_DIVISION))
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+					&& (Tflags & ENABLE_INTEGER_DIVISION))
+			), basic_number>::type
+		operator/(Tother&& other) const{
+			return basic_number{static_cast<T>(value / other)};
+		}
+		
+		// *this /= basic_number
+		template<typename Tother>
+		typename std::enable_if< is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& (Tflags & ENABLE_SPECIFIC_DIVISION), basic_number&>::type
+		operator/=(Tother&& other){
+			value /= other.value;
+			return *this;
+		}
+		
+		// *this /= Tother
+		template<typename Tother>
+		typename std::enable_if< !is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& ((Tflags & ENABLE_GENERAL_DIVISION)
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+					&& Tflags & ENABLE_FLOAT_DIVISION)
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+					&& Tflags & ENABLE_INTEGER_DIVISION)
+			), basic_number&>::type
+		operator/=(Tother&& other){
 			value /= other;
 			return *this;
 		}
 		
-		inline basic_number operator%(const basic_number& other) const{
-			static_assert(std::is_integral<T>::value,
-					"cannot calculate the modulo of a non-integer type");
-			static_assert(flags & ENABLE_SPECIFIC_MODULO,
-					"calculating the modulo of this numbertype is not"
-					"enabled");
+		// *this % basic_number
+		template<typename Tother>
+		typename std::enable_if<is_this<Tother>::value
+			&& std::is_integral<T>::value
+			&& (Tflags & ENABLE_SPECIFIC_MODULO), basic_number>::type
+		operator%(Tother&& other) const{
+			return basic_number(value % other.value);
+		}
+		
+		// *this %= basic_number
+		template<typename Tother>
+		typename std::enable_if<is_this<Tother>::value
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& std::is_integral<T>::value
+			&& (Tflags & ENABLE_SPECIFIC_MODULO), basic_number&>::type
+		operator%=(Tother&& other){
+			value %= other.value;
+			return *this;
+		}
+		
+		// *this % Tother
+		template<typename Tother>
+		typename std::enable_if<!(is_this<Tother>::value)
+			&& std::is_integral<T>::value
+			&& (Tflags & ENABLE_MODULO), basic_number>::type
+		operator%(Tother&& other) const{
 			return basic_number(value % other);
 		}
 		
-		inline basic_number& operator%=(const basic_number& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(std::is_integral<T>::value,
-					"cannot calculate the modulo of a non-integer type");
-			static_assert(flags & ENABLE_SPECIFIC_MODULO,
-					"calculating the modulo of this numbertype is not"
-					"enabled");
+		// *this %= Tother
+		template<typename Tother>
+		typename std::enable_if<!(is_this<Tother>::value)
+			&& !(Tflags & DISABLE_MUTABILITY)
+			&& std::is_integral<T>::value
+			&& (Tflags & ENABLE_MODULO), basic_number>::type
+		operator%=(Tother&& other){
 			value %= other;
 			return *this;
 		}
 		
-		template<typename Tother>
-		inline basic_number operator%(const Tother& other) const{
-			static_assert(std::is_integral<T>::value,
-					"cannot calculate the modulo of a non-integer type");
-			static_assert(flags & ENABLE_MODULO,
-					"calculating the modulo of this numbertype is not"
-					"enabled");
-			return basic_number(value % other);
-		}
-		
-		template<typename Tother>
-		inline basic_number& operator%=(const Tother& other){
-			static_assert( !(flags & DISABLE_MUTABILITY),
-					"You cannot change the value of an instance "
-					"of an immutable type");
-			static_assert(std::is_integral<T>::value,
-					"cannot calculate the modulo of a non-integer type");
-			static_assert(flags & ENABLE_MODULO,
-					"calculating the modulo of this numbertype is not"
-					"enabled");
-			value %= other;
-			return *this;
-		}
 		///////////////////////////////////////////////
 		
-		inline T get_value() const{ 
+		T get_value() const{ 
 			return value; 
 		}
 		
 		enum: uint64_t{
-			FLAGS = flags
+			FLAGS = Tflags
 		};
 		
 		enum: int {
-			TYPE_ID = ID
+			TYPE_ID = Tid
 		};
 		
 	private:
 		T value;
 };
 
-} //namespace type_builder
+template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
+basic_number<T, Tid, Tflags, Tbase> operator+(const Tother& factor, 
+		const basic_number<T, Tid, Tflags, Tbase>& value){
+	return {value+factor};
+}
 
-template<typename Tchar, typename T, int ID, uint64_t flags>
+template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
+basic_number<T, Tid, Tflags, Tbase> operator*(const Tother& factor, 
+		const basic_number<T, Tid, Tflags, Tbase>& value){
+	return {value*factor};
+}
+
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, class Tbase>
 ::std::basic_ostream<Tchar>& operator << (::std::basic_ostream<Tchar>& stream,
-		const type_builder::basic_number<T, ID, flags>& number){
+		const type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
+	stream << Tbase::template format<Tchar>(number.get_value());
+	return stream;
+}
+
+template<typename Tchar, typename T, int Tid, uint64_t Tflags>
+::std::basic_ostream<Tchar>& operator << (::std::basic_ostream<Tchar>& stream,
+		const type_builder::basic_number<T, Tid, Tflags, empty_base> number){
 	stream << number.get_value();
 	return stream;
 }
 
-template<typename Tchar, typename T, int ID, uint64_t flags>
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, class Tbase>
 ::std::basic_istream<Tchar>& operator >> (::std::basic_istream<Tchar>& stream,
-		type_builder::basic_number<T, ID, flags>& number){
-	T tmp;
-	stream >> tmp;
-	number = type_builder::basic_number<T,ID, flags>(tmp);
+		type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
+	type_builder::basic_number<T,Tid, Tflags, Tbase>(
+			Tbase::read_istream(stream), number);
 	return stream;
 }
+
+template<typename Tchar, typename T, int Tid, uint64_t Tflags>
+::std::basic_istream<Tchar>& operator >> (::std::basic_istream<Tchar>& stream,
+		type_builder::basic_number<T, Tid, Tflags, empty_base>& number){
+	T tmp;
+	stream >> tmp;
+	number = type_builder::basic_number<T,Tid, Tflags, empty_base>(tmp);
+	return stream;
+}
+
+} //namespace type_builder
+
+#endif
+
+
+
 
 

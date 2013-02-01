@@ -16,6 +16,9 @@ using mynum = type_builder::basic_number<long double, 4, type_builder::ENABLE_DE
 
 using mighty = type_builder::basic_number<long double, 5, type_builder::ENABLE_ALL>;
 
+using immutable_int = type_builder::basic_number<int, 6, type_builder::ENABLE_GENERAL_CONSTRUCTION
+	| type_builder::DISABLE_MUTABILITY>;
+
 int main(){
 	mynum a(3.0l),
 	      b(2.0l),
@@ -33,5 +36,6 @@ int main(){
 	std::cin >> foo;
 	std::cout << foo << std::endl;
 	
+	immutable_int x{3};
 	//foo = 3;
 }

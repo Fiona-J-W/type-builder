@@ -10,6 +10,7 @@ SRC_DIR="src/test/"
 
 ####################
 
+
 for FILE in $(find $SRC_DIR -type f -iname "*.cpp"); do
 	BASENAME=$(basename -s ".cpp" $FILE)
 	TARGET="$BINDIR/$BASENAME"

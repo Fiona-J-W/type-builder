@@ -22,7 +22,8 @@ int main(int argc, char** argv){
 	if(argv[1][0] == 'i'){
 		int a(1), b(2), c(3);
 		for(int i=0; i<n; ++i){
-			a += b*3.5 + (c+c);
+			int tmp = b*3.5;
+			a += tmp + (c+c);
 			c = c+c;
 			b *=2;
 			a %= 10000;
