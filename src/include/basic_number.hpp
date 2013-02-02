@@ -75,7 +75,9 @@ class basic_number: public Tbase {
 	//this template is used to check, whether a type is equal enough
 	//to the instanciation of the class-template:
 	template<typename Targ> struct is_this{ 
-		enum{value = (std::is_same<const basic_number&,const Targ&>::value || std::is_same<basic_number&, Targ&>::value)
+		enum{
+			value = ( std::is_same<const basic_number&, const Targ&>::value 
+				|| std::is_same<basic_number&, Targ&>::value)
 		};
 	};
 	
@@ -169,7 +171,7 @@ class basic_number: public Tbase {
 		operator==(Tother&& other) const{
 			return value == other;
 		}
-				
+		
 		// *this != basic_number
 		template <typename Tother>
 		typename std::enable_if< is_this<Tother>::value
@@ -185,7 +187,7 @@ class basic_number: public Tbase {
 		operator!=(Tother&& other) const{
 			return value != other;
 		}
-
+		
 		// *this < basic_number
 		template <typename Tother>
 		typename std::enable_if< is_this<Tother>::value
@@ -201,7 +203,6 @@ class basic_number: public Tbase {
 		operator<(Tother&& other) const{
 			return value < other;
 		}
-		
 		
 		// *this <= basic_number
 		template <typename Tother>
@@ -408,8 +409,8 @@ class basic_number: public Tbase {
 			value *= other;
 			return *this;
 		}
-
-				
+		
+		
 		// *this / basic_number
 		template<typename Tother>
 		typename std::enable_if< is_this<Tother>::value
@@ -498,6 +499,10 @@ class basic_number: public Tbase {
 		
 		///////////////////////////////////////////////
 		
+		/**
+		 * @brief Provides reading access to the underlying value.
+		 * @return the value of the underlying variable.
+		 */
 		T get_value() const{ 
 			return value; 
 		}
