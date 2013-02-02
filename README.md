@@ -25,8 +25,8 @@ This looks nice on the first glance. However: point.x and point.y are both of th
 
 ```c++
 int main(){
-	int x = 1.0;
-	int y = 2.0;
+	int x = 1;
+	int y = 2;
 	// simple to spot here; this won't be allways so:
 	point<int> p(y, x);
 	// use p
@@ -89,10 +89,20 @@ int main(){
 	
 	// this works like a charm:
 	point p(x, y);
-
+	
 	// use p
 }
 ```
+
+Current state
+=============
+
+The library is currently in alpha-state without strong guarantees that the API won't change. Especially the 
+interactions of the basic types with other types should be considered as something that might change in the
+future.
+
+Nevertheless the performance is already identical to using the build-in types if the code is compiled with 
+enabled optimization.
 
 Library description
 ===================
@@ -101,25 +111,27 @@ All types and constants are part of the namespace type_builder. You shouldn't do
 usage-recommendation is anyway to use a “using”, like in the code above.
 
 basic\_number
-------------
+-------------
 
 This template-class is used to create distinct number type that serves a specific purpose. You can enable and disable
 several operators in different contexts (e.g. enable addition with other instances and multiplication with integral
 numbers but not with floating point). All arithmetic (that excludes bit-operators) operators are available but most
-are disabled by default. The implementations are just small wrappers around the implementation of the basetype and
-static asserts to check whether the called function is enabled.
+are disabled by default. The implementations are just small wrappers around the implementation of the basetype with
+std::enable\_if and static asserts to check whether the called function is enabled for the type in question.
 
 ###Template-arguments
 
 The function takes three template-arguments:
 
 1. T = the underlying type. This may be any type that overloads the arithmetic-operators like the built-in 
-	number-types do, but the usage of the built-in ones is usually the best choice.
-2. ID = The integer that identifies the type. This has to be unique for every semantic type, even if they have 
+	number-types do, but the usage of the built-in ones is usually a good choice.
+2. Tid = The integer that identifies the type. This has to be unique for every semantic type, even if they have 
 	otherwise different template-arguments. The easiest way to use this correctly is propably to create an enum
 	that contains a constant for every type.
-3. Flags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
+3. Tflags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
 	description can be found in the description of the settings-enum below.
+4. Tbase = The base type of the basic\_number. This defaults to a do-nothing base but might be changed to enable some 
+	more advanced usages.
 
 the settings-enum
 -----------------
@@ -169,6 +181,6 @@ The existing flags are:
 * DEFAULT\_SETTINGS = The default settings: this enables inc/dec, specific plus/minus and integer
 	multiplication and division
 
-* ENABLE\_ALL\_SPECIFIC\_MATH = Enables all spcific math.
+* ENABLE\_ALL\_SPECIFIC\_MATH = Enables all specific math.
 * ENABLE\_ALL\_MATH = Enables all math.
 * ENABLE\_ALL =  enables everything.
