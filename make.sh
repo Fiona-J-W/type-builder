@@ -10,6 +10,12 @@ SRC_DIR="src/test/"
 
 ####################
 
+if [[ $# -gt 0 ]]; then
+	if [[ $1 -eq "-f" ]]; then
+		echo "cleaning $BINDIR"
+		rm -f $BINDIR/*
+	fi
+fi
 
 for FILE in $(find $SRC_DIR -type f -iname "*.cpp"); do
 	BASENAME=$(basename -s ".cpp" $FILE)
