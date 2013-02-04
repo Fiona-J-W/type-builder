@@ -371,14 +371,9 @@ class basic_number: public Tbase {
 				basic_number<decltype(value + other.get_value()), Tid, Tflags, Tbase>, 
 				basic_number>::type>::type
 		{
-			return typename return_type<
-				basic_number<
-					decltype(value + other.get_value()), Tid, Tflags, Tbase>, 
-					basic_number
-				>::type{
-					static_cast<typename return_type<decltype(value + other.get_value()),T>::type>(
-						value + other.get_value()
-					)
+			using return_type_base = typename return_type<decltype(value + other.get_value()), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value + other.get_value())
 				};
 		}
 		
@@ -391,10 +386,10 @@ class basic_number: public Tbase {
 				basic_number<decltype(value + other), Tid, Tflags, Tbase>, 
 				basic_number>::type >::type
 		{
-			return typename return_type<basic_number<decltype(value + other), Tid, Tflags, Tbase>, 
-				basic_number>::type{static_cast<typename return_type<decltype(value + other),T>::type>(
-					value + other // <- actual code
-				)};
+			using return_type_base = typename return_type<decltype(value - other), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value - other)
+			};
 		}
 		
 		// *this += basic_number
@@ -426,14 +421,9 @@ class basic_number: public Tbase {
 				basic_number<decltype(value - other.get_value()), Tid, Tflags, Tbase>, 
 				basic_number>::type>::type
 		{
-			return typename return_type<
-				basic_number<
-					decltype(value - other.get_value()), Tid, Tflags, Tbase>, 
-					basic_number
-				>::type{
-					static_cast<typename return_type<decltype(value - other.get_value()),T>::type>(
-						value - other.get_value()
-					)
+			using return_type_base = typename return_type<decltype(value - other.get_value()), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value - other.get_value())
 				};
 		}
 		
@@ -446,10 +436,10 @@ class basic_number: public Tbase {
 				basic_number<decltype(value - other), Tid, Tflags, Tbase>, 
 				basic_number>::type >::type
 		{
-			return typename return_type<basic_number<decltype(value - other), Tid, Tflags, Tbase>, 
-				basic_number>::type{static_cast<typename return_type<decltype(value - other),T>::type>(
-					value - other // <- actual code
-				)};
+			using return_type_base = typename return_type<decltype(value - other), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value - other)
+				};
 		}
 		
 		// *this -= basic_number
@@ -481,14 +471,9 @@ class basic_number: public Tbase {
 				basic_number<decltype(value - other.get_value()), Tid, Tflags, Tbase>, 
 				basic_number>::type>::type
 		{
-			return typename return_type<
-				basic_number<
-					decltype(value * other.get_value()), Tid, Tflags, Tbase>, 
-					basic_number
-				>::type{
-					static_cast<typename return_type<decltype(value * other.get_value()),T>::type>(
-						value * other.get_value()
-					)
+			using return_type_base = typename return_type<decltype(value * other.get_value()), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value * other.get_value())
 				};
 		}
 		
@@ -505,10 +490,10 @@ class basic_number: public Tbase {
 				basic_number<decltype(value * other), Tid, Tflags, Tbase>, 
 				basic_number>::type >::type
 		{
-			return typename return_type<basic_number<decltype(value * other), Tid, Tflags, Tbase>, 
-				basic_number>::type{static_cast<typename return_type<decltype(value * other),T>::type>(
-					value * other // <- actual code
-				)};
+			using return_type_base = typename return_type<decltype(value * other), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value * other)
+				};
 		}
 		
 		// *this *= basic_number
@@ -546,14 +531,9 @@ class basic_number: public Tbase {
 				basic_number<decltype(value / other.get_value()), Tid, Tflags, Tbase>, 
 				basic_number>::type>::type
 		{
-			return typename return_type<
-				basic_number<
-					decltype(value / other.get_value()), Tid, Tflags, Tbase>, 
-					basic_number
-				>::type{
-					static_cast<typename return_type<decltype(value / other.get_value()),T>::type>(
-						value / other.get_value()
-					)
+			using return_type_base = typename return_type<decltype(value / other.get_value()), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value / other.get_value())
 				};
 		}
 		
@@ -570,10 +550,10 @@ class basic_number: public Tbase {
 				basic_number<decltype(value / other), Tid, Tflags, Tbase>, 
 				basic_number>::type >::type
 		{
-			return typename return_type<basic_number<decltype(value / other), Tid, Tflags, Tbase>, 
-				basic_number>::type{static_cast<typename return_type<decltype(value / other),T>::type>(
-					value / other // <- actual code
-				)};
+			using return_type_base = typename return_type<decltype(value / other), T>::type;
+			return basic_number<return_type_base, Tid, Tflags, Tbase>{
+					static_cast<return_type_base>(value / other)
+				};
 		}
 		
 		// *this /= basic_number
@@ -660,15 +640,29 @@ class basic_number: public Tbase {
 		};
 };
 
+// these templates check, whether a type is an instance of basic_number:
+template <typename T>
+struct _is_basic_number{
+	enum {
+		value = false
+	};
+};
+template <typename T, int Tid, uint64_t Tflags, typename Tbase>
+struct _is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
+	enum {
+		value = true
+	};
+};
+
 template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
 auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& value)
-	-> decltype(value.operator+(other)) {
+	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator+(other))>::type {
 	return {value+other};
 }
 
 template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
 auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
-	-> decltype(value.operator*(factor)){
+	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
 	return {value*factor};
 }
 
