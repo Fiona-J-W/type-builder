@@ -175,7 +175,7 @@ The existing flags are:
 * ENABLE\_SPECIFIC\_MODULO = Enables the calculation of the modulo with other instances.
 * ENABLE\_MODULO = Enable the calculation of the modulo with any supporting type.
 
-* ENABLE\_NATIVE\_TYPING = Enables native type-behaviour. (eg. `my\_type<int> * double = my\_type<double>`)
+* ENABLE\_NATIVE\_TYPING = Enables native type-behaviour. (eg. `mytype<int> * double = mytype<double>`)
 
 * DISABLE\_CONSTRUCTION = Disables the creation of instances.
 * DISABLE\_MUTABILITY = Disables all later changes to the value of the variable.
