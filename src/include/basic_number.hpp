@@ -421,7 +421,7 @@ class basic_number: public Tbase {
 			return typename return_type<basic_number<decltype(value * other), Tid, Tflags, Tbase>, 
 				basic_number>::type{static_cast<typename return_type<decltype(value * other),T>::type>(
 					value * other // <- actual code
-				)};;
+				)};
 		}
 		
 		// *this *= basic_number
@@ -474,7 +474,7 @@ class basic_number: public Tbase {
 			return typename return_type<basic_number<decltype(value / other), Tid, Tflags, Tbase>, 
 				basic_number>::type{static_cast<typename return_type<decltype(value / other),T>::type>(
 					value / other // <- actual code
-				)};;
+				)};
 		}
 		
 		// *this /= basic_number
@@ -562,14 +562,14 @@ class basic_number: public Tbase {
 };
 
 template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
-basic_number<T, Tid, Tflags, Tbase> operator+(const Tother& factor, 
-		const basic_number<T, Tid, Tflags, Tbase>& value){
-	return {value+factor};
+auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& value)
+	-> decltype(value.operator+(other)) {
+	return {value+other};
 }
 
 template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
-basic_number<T, Tid, Tflags, Tbase> operator*(const Tother& factor, 
-		const basic_number<T, Tid, Tflags, Tbase>& value){
+auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
+	-> decltype(value.operator*(factor)){
 	return {value*factor};
 }
 
@@ -607,6 +607,7 @@ template<typename Tchar, typename T, int Tid, uint64_t Tflags>
 } //namespace type_builder
 
 #endif
+
 
 
 
