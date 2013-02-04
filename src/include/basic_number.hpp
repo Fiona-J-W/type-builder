@@ -45,6 +45,7 @@ enum: uint64_t{
 	ENABLE_MODULO = ENABLE_SPECIFIC_MODULO | uint64_t(1) << 27,
 	
 	ENABLE_NATIVE_TYPING = uint64_t(1) << 30,
+	ENABLE_BOOL_CONVERSION = uint64_t(1) << 31,
 	
 	DISABLE_CONSTRUCTION = uint64_t(1) << 60,
 	DISABLE_MUTABILITY = uint64_t(1) << 61,
@@ -270,6 +271,13 @@ class basic_number: public Tbase {
 			&& (Tflags & ENABLE_ORDERING), bool>::type
 		operator>=(Tother&& other) const{
 			return value >= other;
+		}
+		
+		operator bool() const {
+			static_assert( Tflags & ENABLE_BOOL_CONVERSION ,
+					"Implicit conversion too bool is not enabled "
+					"for this type");
+			return (value != 0);
 		}
 		
 		basic_number& operator++(){
