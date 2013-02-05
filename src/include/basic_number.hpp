@@ -12,6 +12,9 @@
 
 namespace type_builder{
 
+/**
+ * @brief A collection of the available flags for basic_number.
+ */
 enum: uint64_t{
 	ENABLE_GENERAL_CONSTRUCTION = uint64_t{1},
 	ENABLE_DEFAULT_CONSTRUCTION = uint64_t{1} << 1,
@@ -63,21 +66,32 @@ enum: uint64_t{
 	
 	ENABLE_ALL = ENABLE_GENERAL_CONSTRUCTION | ENABLE_DEFAULT_CONSTRUCTION 
 		| ENABLE_LATE_ASSIGNEMENT | ENABLE_ORDERING 
-		| ENABLE_ALL_MATH
+		| ENABLE_ALL_MATH | ENABLE_NATIVE_TYPING
 };
 
+/**
+ * @brief A template for a number-class.
+ */
+// note that the operators are not documented with doxygen, 
+// because they behave pretty much as you would expect anyway.
 template<
 	typename T,
 	int Tid,
 	uint64_t Tflags = DEFAULT_SETTINGS,
-	template<typename> class Tbase = empty_base
->
+	template<typename> class Tbase = empty_base>
 class basic_number: public Tbase<T> {
+	//put the private stuff to the begining because we will need it in 
+	// signatures:
 	
+	/**
+	 * @brief The value of the number.
+	 */
 	T value;
 	
-	//this template is used to check, whether a type is equal enough
-	//to the instanciation of the class-template:
+	/**
+	 * @brief Checks if a type is identical to *this.
+	 * @return true if it is, false otherwise.
+	 */
 	template<typename Targ> struct is_this{ 
 		enum : bool{
 			value = ( std::is_same<const basic_number&, const Targ&>::value 
@@ -85,28 +99,48 @@ class basic_number: public Tbase<T> {
 		};
 	};
 	
+	static_assert(is_this<basic_number>::value, "is_this doesn't work.");
+	static_assert(!is_this<basic_number<T,Tid+1>>::value, "is_this doesn't work.");
+	static_assert(!is_this<int>::value, "is_this doesn't work.");
+	
+	/**
+	 * @brief A simple type-chooser.
+	 * @return T1 if the first template-argument is true, T2 otherwise.
+	 */
 	template<bool first_type, typename T1, typename T2>
 	struct general_type_chooser{
 		using type = T1;
 	};
-	
+	// dito:
 	template<typename T1, typename T2>
 	struct general_type_chooser<false, T1, T2>{
 		using type = T2;
 	};
 	
+	static_assert(std::is_same<typename general_type_chooser<true, int, double>::type,
+		int>::value, "general_type_chooser doesn't work");
+	
+	static_assert(std::is_same<typename general_type_chooser<false, int, double>::type,
+		double>::value, "general_type_chooser doesn't work");
+	
+	/**
+	 * @brief Provides the correct returntype for some functions.
+	 * @param T1 the return type if native typing is enabled
+	 * @param T2 the return type if native typing is disabled
+	 */
 	template<typename T1, typename T2>
 	struct return_type{
 		using type = typename general_type_chooser<(Tflags & ENABLE_NATIVE_TYPING) != 0, T1, T2>::type;
 	};
 	
+	// implementation for is_equivalent_basic_number
 	template<typename Targ>
 	struct _is_equivalent_basic_number{
 		enum : bool{
 			value = 0
 		};
 	};
-	
+	// dito:
 	template<typename Targ>
 	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
 		enum : bool{
@@ -114,6 +148,11 @@ class basic_number: public Tbase<T> {
 		};
 	};
 	
+	/**
+	 * @brief Checks whether a type is semanticly equivalent to *this.
+	 * @param Targ the type that will be checked.
+	 * @return true if it is equivalent, false otherwise
+	 */
 	template<typename Targ>
 	struct is_equivalent_basic_number{
 		enum : bool{
@@ -124,45 +163,48 @@ class basic_number: public Tbase<T> {
 		};
 	};
 	
-	static_assert(is_equivalent_basic_number<basic_number>::value, "is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<basic_number&>::value, "is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<const basic_number>::value, "is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<const basic_number&>::value, "is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<basic_number&&>::value, "is_equivalent_basic_number doesn't work.");
+	static_assert(is_equivalent_basic_number<basic_number>::value, 
+		"is_equivalent_basic_number doesn't work.");
+	static_assert(is_equivalent_basic_number<basic_number&>::value, 
+		"is_equivalent_basic_number doesn't work.");
+	static_assert(is_equivalent_basic_number<const basic_number>::value, 
+		"is_equivalent_basic_number doesn't work.");
+	static_assert(is_equivalent_basic_number<const basic_number&>::value, 
+		"is_equivalent_basic_number doesn't work.");
+	static_assert(is_equivalent_basic_number<basic_number&&>::value, 
+		"is_equivalent_basic_number doesn't work.");
 	
 	public:
 		
 		// constructors:
 		
-		basic_number() : value(0) {
+		// clang says I cannot disable this constructor with std::enable_if :-(
+		constexpr basic_number() : value(Tbase<T>::default_value()) {
 			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 			static_assert( Tflags & ENABLE_DEFAULT_CONSTRUCTION,
 					"default constructor not enabled for this type");
 		}
 		
-		explicit basic_number(T value): value(value){
-			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
-					"construction of this type is disabled");
-		}
-		
-		basic_number(const basic_number& other): value(other.get_value()){
-			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
-					"construction of this type is disabled");
-		}
-		
-		basic_number(basic_number&& other): value(std::move(other.get_value())){
-			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
-					"construction of this type is disabled");
-		}
+		template<typename Tother>
+		constexpr explicit basic_number(Tother&& value,
+			typename std::enable_if<(std::is_same<Tother&, T&>::value)
+				&& (!(Tflags & DISABLE_CONSTRUCTION))>::type* = 0
+		): value(std::forward<T>(value)){}
 		
 		template<typename Tother>
-		explicit basic_number(const Tother& value): value(value){ 
-			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
-					"construction of this type is disabled");
-			static_assert(Tflags & ENABLE_GENERAL_CONSTRUCTION, 
-					"invalid construction of number type"); 
-		}
+		constexpr basic_number(Tother&& other, 
+			typename std::enable_if<(is_equivalent_basic_number<Tother>::value) 
+				&& (!(Tflags & DISABLE_CONSTRUCTION))>::type* = 0
+		): value(std::forward<T>(other.get_value())){}
+		
+		template<typename Tother>
+		constexpr explicit basic_number(Tother&& value,
+			typename std::enable_if<(!is_equivalent_basic_number<Tother>::value) 
+				&& (!std::is_same<Tother&, T&>::value)
+				&& (!(Tflags & DISABLE_CONSTRUCTION))
+				&& (Tflags & ENABLE_GENERAL_CONSTRUCTION)>::type* = 0
+		): value(std::forward<T>(value)){}
 		
 		// methods:
 		
@@ -612,24 +654,27 @@ class basic_number: public Tbase<T> {
 			return value; 
 		}
 		
-		enum: uint64_t{
-			FLAGS = Tflags
-		};
+	protected:
 		
-		enum: int {
-			TYPE_ID = Tid
-		};
+		/**
+		 * @brief Sets the value of 'this'. 
+		 * @note This method is mainly provided for use by Tbase.
+		 * @param value the new value
+		 */
+		void set_value(T value){
+			this->value = value;
+		}
 };
 
 // these templates check, whether a type is an instance of basic_number:
 template <typename T>
-struct _is_basic_number{
+struct is_basic_number{
 	enum {
 		value = false
 	};
 };
 template <typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
-struct _is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
+struct is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
 	enum {
 		value = true
 	};
@@ -637,13 +682,13 @@ struct _is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
 
 template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename> class Tbase>
 auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& value)
-	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator+(other))>::type {
+	-> typename std::enable_if<!is_basic_number<Tother>::value, decltype(value.operator+(other))>::type {
 	return {value+other};
 }
 
 template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename>  class Tbase>
 auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
-	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
+	-> typename std::enable_if<!is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
 	return {value*factor};
 }
 
