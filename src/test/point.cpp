@@ -6,8 +6,7 @@
 
 // If we wish to, we can define our own unit by creating a type that provides these methods:
 template<typename T>
-class meter_t{
-	public:
+struct meter_t : type_builder::empty_base<T>{
 	template<typename Tchar>
 	static std::basic_string<Tchar> format(T value){
 		//this is just a test so let's asume usage only with utf8:
@@ -23,6 +22,10 @@ class meter_t{
 		return returnval;
 	}
 	
+	enum{
+		USE_DEFAULT_STREAM_IN = false,
+		USE_DEFAULT_STREAM_OUT = false
+	};
 };
 
 // defining constants is recommended if you need the same settings more 

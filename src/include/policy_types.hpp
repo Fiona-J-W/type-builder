@@ -16,6 +16,12 @@ struct empty_base{
 	static constexpr T default_value(){
 		return 0;
 	}
+	
+	enum: bool{
+		USE_DEFAULT_STREAM_IN = true,
+		USE_DEFAULT_STREAM_OUT = true
+	};
+	
 };
 
 /**
@@ -25,11 +31,17 @@ struct empty_base{
  */
 template <typename T>
 struct virtual_empty_base{
+	
 	static constexpr T default_value(){
 		return 0;
 	}
-	public:
-		virtual ~virtual_empty_base() = 0;
+	
+	enum: bool{
+		USE_DEFAULT_STREAM_IN = true,
+		USE_DEFAULT_STREAM_OUT = true
+	};
+	
+	virtual ~virtual_empty_base() = 0;
 };
 
 }

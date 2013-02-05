@@ -686,40 +686,49 @@ auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& v
 	return {value+other};
 }
 
-template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename>  class Tbase>
+template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename> class Tbase>
 auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
 	-> typename std::enable_if<!is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
 	return {value*factor};
 }
 
-template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename>  class Tbase>
-::std::basic_ostream<Tchar>& operator << (::std::basic_ostream<Tchar>& stream,
-		const type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
+
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
+auto operator << (::std::basic_ostream<Tchar>& stream, 
+		const type_builder::basic_number<T, Tid, Tflags, Tbase> number)
+	-> typename std::enable_if<!Tbase<T>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
+{
 	stream << Tbase<T>::template format<Tchar>(number.get_value());
 	return stream;
 }
 
-template<typename Tchar, typename T, int Tid, uint64_t Tflags>
-::std::basic_ostream<Tchar>& operator << (::std::basic_ostream<Tchar>& stream,
-		const type_builder::basic_number<T, Tid, Tflags, empty_base> number){
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
+auto operator << (::std::basic_ostream<Tchar>& stream, 
+		const type_builder::basic_number<T, Tid, Tflags, Tbase> number)
+	-> typename std::enable_if<Tbase<T>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
+{
 	stream << number.get_value();
 	return stream;
 }
 
+
 template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
-::std::basic_istream<Tchar>& operator >> (::std::basic_istream<Tchar>& stream,
-		type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
+auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase> number)
+	-> typename std::enable_if<!Tbase<T>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
+{
 	type_builder::basic_number<T,Tid, Tflags, Tbase>(
 			Tbase<T>::read_istream(stream), number);
 	return stream;
 }
 
-template<typename Tchar, typename T, int Tid, uint64_t Tflags>
-::std::basic_istream<Tchar>& operator >> (::std::basic_istream<Tchar>& stream,
-		type_builder::basic_number<T, Tid, Tflags, empty_base>& number){
+
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
+auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase> number)
+	-> typename std::enable_if<Tbase<T>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
+{
 	T tmp;
 	stream >> tmp;
-	number = type_builder::basic_number<T,Tid, Tflags, empty_base>{tmp};
+	number = type_builder::basic_number<T,Tid, Tflags, Tbase>{tmp};
 	return stream;
 }
 
