@@ -70,9 +70,9 @@ template<
 	typename T,
 	int Tid,
 	uint64_t Tflags = DEFAULT_SETTINGS,
-	class Tbase = empty_base
+	template<typename> class Tbase = empty_base
 >
-class basic_number: public Tbase {
+class basic_number: public Tbase<T> {
 	
 	T value;
 	
@@ -100,48 +100,27 @@ class basic_number: public Tbase {
 		using type = typename general_type_chooser<(Tflags & ENABLE_NATIVE_TYPING) != 0, T1, T2>::type;
 	};
 	
-	
-	// Let's have fun with much redundandency
-	
 	template<typename Targ>
-	struct is_equivalent_basic_number{
+	struct _is_equivalent_basic_number{
 		enum : bool{
 			value = 0
 		};
 	};
 	
-	template<typename Ttype>
-	struct is_equivalent_basic_number<basic_number<Ttype, Tid, Tflags, Tbase>>{
+	template<typename Targ>
+	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
 		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Ttype, Tid, Tflags, Tbase>>::value
+			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Targ, Tid, Tflags, Tbase>>::value
 		};
 	};
 	
-	template<typename Ttype>
-	struct is_equivalent_basic_number<const basic_number<Ttype, Tid, Tflags, Tbase>>{
+	template<typename Targ>
+	struct is_equivalent_basic_number{
 		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Ttype, Tid, Tflags, Tbase>>::value
-		};
-	};
-	
-	template<typename Ttype>
-	struct is_equivalent_basic_number<basic_number<Ttype, Tid, Tflags, Tbase>&>{
-		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Ttype, Tid, Tflags, Tbase>>::value
-		};
-	};
-	
-	template<typename Ttype>
-	struct is_equivalent_basic_number<basic_number<Ttype, Tid, Tflags, Tbase>&&>{
-		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Ttype, Tid, Tflags, Tbase>>::value
-		};
-	};
-	
-	template<typename Ttype>
-	struct is_equivalent_basic_number<const basic_number<Ttype, Tid, Tflags, Tbase>&>{
-		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Ttype, Tid, Tflags, Tbase>>::value
+			value = _is_equivalent_basic_number<
+				typename std::remove_const<
+					typename std::remove_reference<Targ>::type
+				>::type&>::value
 		};
 	};
 	
@@ -368,7 +347,9 @@ class basic_number: public Tbase {
 		typename std::enable_if< is_equivalent_basic_number<Tother>::value
 			&& (Tflags & ENABLE_SPECIFIC_PLUS_MINUS), 
 			typename return_type<
-				basic_number<decltype(value + other.get_value()), Tid, Tflags, Tbase>, 
+				basic_number<
+					decltype(value + other.get_value()), Tid, Tflags,
+					Tbase>, 
 				basic_number>::type>::type
 		{
 			using return_type_base = typename return_type<decltype(value + other.get_value()), T>::type;
@@ -647,29 +628,29 @@ struct _is_basic_number{
 		value = false
 	};
 };
-template <typename T, int Tid, uint64_t Tflags, typename Tbase>
+template <typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
 struct _is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
 	enum {
 		value = true
 	};
 };
 
-template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
+template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename> class Tbase>
 auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& value)
 	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator+(other))>::type {
 	return {value+other};
 }
 
-template<typename Tother, class T, int Tid, uint64_t Tflags, class Tbase>
+template<typename Tother, class T, int Tid, uint64_t Tflags, template<typename>  class Tbase>
 auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
 	-> typename std::enable_if<!_is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
 	return {value*factor};
 }
 
-template<typename Tchar, typename T, int Tid, uint64_t Tflags, class Tbase>
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename>  class Tbase>
 ::std::basic_ostream<Tchar>& operator << (::std::basic_ostream<Tchar>& stream,
 		const type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
-	stream << Tbase::template format<Tchar>(number.get_value());
+	stream << Tbase<T>::template format<Tchar>(number.get_value());
 	return stream;
 }
 
@@ -680,11 +661,11 @@ template<typename Tchar, typename T, int Tid, uint64_t Tflags>
 	return stream;
 }
 
-template<typename Tchar, typename T, int Tid, uint64_t Tflags, class Tbase>
+template<typename Tchar, typename T, int Tid, uint64_t Tflags, template<typename> class Tbase>
 ::std::basic_istream<Tchar>& operator >> (::std::basic_istream<Tchar>& stream,
 		type_builder::basic_number<T, Tid, Tflags, Tbase>& number){
 	type_builder::basic_number<T,Tid, Tflags, Tbase>(
-			Tbase::read_istream(stream), number);
+			Tbase<T>::read_istream(stream), number);
 	return stream;
 }
 

@@ -40,10 +40,10 @@ enum basic_number_types{
 
 // thanks to 'using' we can still keep some flexibility:
 template<typename T>
-using x_coord = type_builder::basic_number<T, x_coord_type, COORD_SETTINGS, meter_t<T>>;
+using x_coord = type_builder::basic_number<T, x_coord_type, COORD_SETTINGS, meter_t>;
 
 template<typename T>
-using y_coord = type_builder::basic_number<T, y_coord_type, COORD_SETTINGS, meter_t<T>>;
+using y_coord = type_builder::basic_number<T, y_coord_type, COORD_SETTINGS, meter_t>;
 
 // and this is how the types can be used to ensure correctness:
 template<typename T>
