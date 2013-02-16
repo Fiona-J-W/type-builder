@@ -6,7 +6,7 @@
 
 // If we wish to, we can define our own unit by creating a type that provides these methods:
 template<typename T>
-struct meter_t : type_builder::empty_base<T>{
+struct meter_t : public type_builder::empty_base<T>{
 	template<typename Tchar>
 	static std::basic_string<Tchar> format(T value){
 		//this is just a test so let's asume usage only with utf8:
@@ -19,6 +19,11 @@ struct meter_t : type_builder::empty_base<T>{
 	static T read_istream(std::basic_istream<Tchar>& stream){
 		T returnval;
 		stream >> returnval;
+		std::string tmp;
+		stream >> tmp;
+		if(tmp != "m"){
+			
+		}
 		return returnval;
 	}
 	
@@ -30,7 +35,7 @@ struct meter_t : type_builder::empty_base<T>{
 
 // defining constants is recommended if you need the same settings more 
 // than once:
-enum: uint64_t{
+enum: type_builder::flag_t{
 	COORD_SETTINGS = type_builder::DEFAULT_SETTINGS
 		| type_builder::ENABLE_FLOAT_MULT_DIV
 };

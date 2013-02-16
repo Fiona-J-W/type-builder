@@ -19,7 +19,7 @@ using mighty = type_builder::basic_number<long double, 5, type_builder::ENABLE_A
 using immutable_int = type_builder::basic_number<int, 6, type_builder::ENABLE_GENERAL_CONSTRUCTION
 	| type_builder::DISABLE_MUTABILITY>;
 
-enum{
+enum: type_builder::flag_t{
 	pm_test_flags = type_builder::DEFAULT_SETTINGS | type_builder::ENABLE_NATIVE_TYPING | type_builder::ENABLE_GENERAL_PLUS_MINUS
 };
 using pm_test = type_builder::basic_number<int, 7, pm_test_flags>;

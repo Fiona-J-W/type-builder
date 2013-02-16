@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-enum: uint64_t{
+enum: type_builder::flag_t{
 	int_type_settings = type_builder::DEFAULT_SETTINGS
 		| type_builder::ENABLE_FLOAT_MULT_DIV
 		| type_builder::ENABLE_MODULO
