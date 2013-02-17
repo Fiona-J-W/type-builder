@@ -14,7 +14,7 @@ namespace type_builder{
 template<typename T>
 struct empty_base{
 	static constexpr T default_value(){
-		return T();
+		return T{};
 	}
 	
 	enum: bool{
@@ -33,7 +33,7 @@ template <typename T>
 struct virtual_empty_base{
 	
 	static constexpr T default_value(){
-		return 0;
+		return T{};
 	}
 	
 	enum: bool{
