@@ -161,7 +161,7 @@ class basic_number: public Tbase<T> {
 		// constructors:
 		
 		// clang says I cannot disable this constructor with std::enable_if :-(
-		constexpr basic_number() : value(Tbase<T>::default_value()) {
+		basic_number() : value(Tbase<T>::default_value()) {
 			static_assert( !(Tflags & DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 			static_assert( Tflags & ENABLE_DEFAULT_CONSTRUCTION,
@@ -169,19 +169,19 @@ class basic_number: public Tbase<T> {
 		}
 		
 		template<typename Tother>
-		constexpr explicit basic_number(Tother&& value,
+		explicit basic_number(Tother&& value,
 			typename std::enable_if<(std::is_same<Tother&, T&>::value)
 				&& (!(Tflags & DISABLE_CONSTRUCTION))>::type* = 0
 		): value(std::forward<T>(value)){}
 		
 		template<typename Tother>
-		constexpr basic_number(Tother&& other, 
+		basic_number(Tother&& other, 
 			typename std::enable_if<(is_equivalent_basic_number<Tother>::value) 
 				&& (!(Tflags & DISABLE_CONSTRUCTION))>::type* = 0
 		): value(std::forward<T>(other.get_value())){}
 		
 		template<typename Tother>
-		constexpr explicit basic_number(Tother&& value,
+		explicit basic_number(Tother&& value,
 			typename std::enable_if<(!is_equivalent_basic_number<Tother>::value) 
 				&& (!std::is_same<Tother&, T&>::value)
 				&& (!(Tflags & DISABLE_CONSTRUCTION))
@@ -201,18 +201,6 @@ class basic_number: public Tbase<T> {
 			if(this != &other){
 				this->value = std::forward<Tother>(other).value;
 			}
-			return *this;
-		}
-		
-		// *this = T
-		template<typename Tother> 
-		typename std::enable_if<
-			!is_this<Tother>::value 
-			&& (!(Tflags & DISABLE_MUTABILITY))
-			&& (Tflags & ENABLE_LATE_ASSIGNEMENT),
-		basic_number&>::type
-		operator=(Tother&& other){
-			this->value = std::forward<Tother>(other.get_value());
 			return *this;
 		}
 		
