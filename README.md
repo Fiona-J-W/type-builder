@@ -71,8 +71,10 @@ This is the part where Type Builder will help you a lot. The code can be reduced
 // completly distinct types (enforced by the second template-parameter 
 // (I admit that this is not the most beautiful thing but definitly much 
 // more beautifull than lots of copy-paste-code):
-using x_coord = type_builder::basic_number<int, 1, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
-using y_coord = type_builder::basic_number<int, 2, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
+struct x_coord_id_t{};
+using x_coord = type_builder::basic_number<int, x_coord_id_t, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
+struct y_coord_id_t{};
+using y_coord = type_builder::basic_number<int, y_coord_id_t, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
 
 struct point{
 	point(x_coord x, y_coord y): x(x), y(y) {}
@@ -125,9 +127,10 @@ The function takes three template-arguments:
 
 1. T = the underlying type. This may be any type that overloads the arithmetic-operators like the built-in 
 	number-types do, but the usage of the built-in ones is usually a good choice.
-2. Tid = The integer that identifies the type. This has to be unique for every semantic type, even if they have 
-	otherwise different template-arguments. The easiest way to use this correctly is propably to create an enum
-	that contains a constant for every type.
+2. Tid = A type (may be empty) that is used to identify the logical type. This has to be unique for every semantic 
+	type, even if they have otherwise different template-arguments (doing anything else shall be considered undefined
+	behaviour. The recommended way is in general to create an empty directly before the creation of the new type that is
+	only used for this purpose (see example above).
 3. Tflags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
 	description can be found in the description of the settings-enum below.
 4. Tbase = The base type of the basic\_number. This defaults to a do-nothing base but might be changed to enable some 
@@ -139,9 +142,10 @@ the settings-enum
 This enum contains several constants that controll the operations that are possible to use on a 
 class-template-instance; they are designed to be used as bit-masks and there are already several combined flags.
 
-The values of the constants are undefined behaviour and may change between versions. *Don't rely on them*!
+The values of the constants are undefined behaviour and may change between versions without any further notion. 
+*Don't rely on them*!
 
-The existing flags are:
+The existing flags are (this might be slightl outdated but not to such a degree that it would be unusable):
 
 * ENABLE\_GENERAL\_CONSTRUCTION = Enables the construction from any type.
 * ENABLE\_DEFAULT\_CONSTRUCTION = Enables the default-construction.
