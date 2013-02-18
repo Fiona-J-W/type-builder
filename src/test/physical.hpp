@@ -1,5 +1,6 @@
 #include "../include/basic_number.hpp"
 #include "utility"
+#include <stdexcept>
 
 template<int Tm, int Tkg, int Ts, int TA, int TK, int Tmol, int Tcd>
 class _physical_t{
@@ -15,16 +16,25 @@ public:
 	};
 };
 
+/**
+ * @brief Signals that the data in an istream cannot be converted to the requested type.
+ */
+class format_error: public std::runtime_error{
+public:
+	format_error(const std::string& msg): runtime_error(msg){}
+};
+
 template<typename T, class Tid>
-struct _physical_base : public type_builder::empty_base<T, Tid>{
+class _physical_base : public type_builder::empty_base<T, Tid>{	
+public:
+	
 	template<typename Tchar>
-	static std::basic_string<Tchar> format(T value){
-		//this is just a test so let's asume usage only with utf8:
+	static std::basic_string<Tchar> get_unit_str(){
 		static_assert(std::is_same<Tchar, char>::value, 
 				"cannot print physical with another format than utf8");
 		using std::to_string;
 		
-		std::basic_string<Tchar> returnstring{to_string(value)};
+		std::basic_string<Tchar> returnstring;
 		for(const auto& unit: {
 				std::pair<const int, const std::string>{Tid::m,"m"},
 				std::pair<const int, const std::string>{Tid::kg,"kg"},
@@ -47,12 +57,33 @@ struct _physical_base : public type_builder::empty_base<T, Tid>{
 				returnstring += unit.second + to_string(unit.first);
 			}
 		}
-		
 		return returnstring;
+		
+	}
+
+	template<typename Tchar>
+	static std::basic_string<Tchar> format(const T& value){
+		return (std::to_string(value) + get_unit_str<Tchar>());
+	}
+	
+	template<typename Tchar>
+	static T read_istream(std::basic_istream<Tchar>& stream) {
+		const static std::basic_string<Tchar> unit_str = get_unit_str<Tchar>();
+		const static typename std::basic_string<Tchar>::size_type unit_str_len = unit_str.size();
+		std::basic_string<Tchar> tmp;
+		tmp.resize(unit_str_len);
+		
+		T returnval;;
+		stream >> returnval;
+		stream.read(&tmp[0], unit_str_len);
+		if(tmp != unit_str){
+			throw format_error("invalid unit in istream");
+		}
+		return returnval;
 	}
 	
 	enum{
-		USE_DEFAULT_STREAM_IN = true,
+		USE_DEFAULT_STREAM_IN = false,
 		USE_DEFAULT_STREAM_OUT = false
 	};
 };

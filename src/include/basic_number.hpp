@@ -715,11 +715,11 @@ auto operator << (::std::basic_ostream<Tchar>& stream,
 
 
 template<typename Tchar, typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
-auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase> number)
+auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase>& number)
 	-> typename std::enable_if<!Tbase<T, Tid>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
 {
-	type_builder::basic_number<T,Tid, Tflags, Tbase>(
-			Tbase<T, Tid>::read_istream(stream), number);
+	number = type_builder::basic_number<T,Tid, Tflags, Tbase>(
+			Tbase<T, Tid>::read_istream(stream));
 	return stream;
 }
 

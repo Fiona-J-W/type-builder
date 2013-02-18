@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <sstream>
 
 #include "physical.hpp"
 
@@ -16,4 +17,18 @@ int main(){
 	std::cout << "area: " << l * l << std::endl;
 	assert(2*l*2*l*2 == 8*area);
 	std::cout << "volume: " << l * l * l << std::endl;
+	
+	std::stringstream teststream;
+	teststream << area;
+	square_meter area_2{0};
+	teststream >> area_2;
+	assert(area == area_2);
+	
+	meter m{0};
+	seconds s{0};
+	std::cout << "meter> ";
+	std::cin >> m;
+	std::cout << m << "\nseconds> ";
+	std::cin >> s;
+	std::cout << s << std::endl;
 }
