@@ -5,8 +5,8 @@
 #include <iostream>
 
 // If we wish to, we can define our own unit by creating a type that provides these methods:
-template<typename T>
-struct meter_t : public type_builder::empty_base<T>{
+template<typename T, class Tid>
+struct meter_t : public type_builder::empty_base<T, Tid>{
 	template<typename Tchar>
 	static std::basic_string<Tchar> format(T value){
 		//this is just a test so let's asume usage only with utf8:
@@ -40,11 +40,10 @@ enum: type_builder::flag_t{
 		| type_builder::ENABLE_FLOAT_MULT_DIV
 };
 
-// it is recommended to use an enum to create different type-tags:
-enum basic_number_types{
-	x_coord_type,
-	y_coord_type
-};
+
+struct x_coord_type{};
+struct y_coord_type{};
+
 
 // thanks to 'using' we can still keep some flexibility:
 template<typename T>

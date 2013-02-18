@@ -82,10 +82,10 @@ enum: flag_t{
 // because they behave pretty much as you would expect anyway.
 template<
 	typename T,
-	int Tid,
+	class Tid,
 	flag_t Tflags = DEFAULT_SETTINGS,
-	template<typename> class Tbase = empty_base>
-class basic_number: public Tbase<T> {
+	template<typename, class> class Tbase = empty_base>
+class basic_number: public Tbase<T, Tid> {
 	//put the private stuff to the begining because we will need it in 
 	// signatures:
 	
@@ -106,7 +106,7 @@ class basic_number: public Tbase<T> {
 	};
 	
 	static_assert(is_this<basic_number>::value, "is_this doesn't work.");
-	static_assert(!is_this<basic_number<T,Tid+1>>::value, "is_this doesn't work.");
+	static_assert(!is_this<basic_number<T,basic_number>>::value, "is_this doesn't work.");
 	static_assert(!is_this<int>::value, "is_this doesn't work.");
 	
 	/**
@@ -189,7 +189,7 @@ class basic_number: public Tbase<T> {
 		// constructors:
 		
 		// clang says I cannot disable this constructor with std::enable_if :-(
-		basic_number() : value(Tbase<T>::default_value()) {
+		basic_number() : value(Tbase<T, Tid>::default_value()) {
 			static_assert( flag_unset<DISABLE_CONSTRUCTION>::value, 
 					"construction of this type is disabled");
 			static_assert( flag_set<ENABLE_DEFAULT_CONSTRUCTION>::value,
@@ -675,58 +675,58 @@ struct is_basic_number{
 		value = false
 	};
 };
-template <typename T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template <typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 struct is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
 	enum {
 		value = true
 	};
 };
 
-template<typename Tother, class T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tother, class T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator+(const Tother& other, const basic_number<T, Tid, Tflags, Tbase>& value)
 	-> typename std::enable_if<!is_basic_number<Tother>::value, decltype(value.operator+(other))>::type {
 	return {value+other};
 }
 
-template<typename Tother, class T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tother, class T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator*(const Tother& factor, const basic_number<T, Tid, Tflags, Tbase>& value)
 	-> typename std::enable_if<!is_basic_number<Tother>::value, decltype(value.operator*(factor))>::type {
 	return {value*factor};
 }
 
 
-template<typename Tchar, typename T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tchar, typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator << (::std::basic_ostream<Tchar>& stream, 
 		const type_builder::basic_number<T, Tid, Tflags, Tbase> number)
-	-> typename std::enable_if<!Tbase<T>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
+	-> typename std::enable_if<!Tbase<T, Tid>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
 {
-	stream << Tbase<T>::template format<Tchar>(number.get_value());
+	stream << Tbase<T, Tid>::template format<Tchar>(number.get_value());
 	return stream;
 }
 
-template<typename Tchar, typename T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tchar, typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator << (::std::basic_ostream<Tchar>& stream, 
 		const type_builder::basic_number<T, Tid, Tflags, Tbase> number)
-	-> typename std::enable_if<Tbase<T>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
+	-> typename std::enable_if<Tbase<T, Tid>::USE_DEFAULT_STREAM_OUT, ::std::basic_ostream<Tchar>&>::type 
 {
 	stream << number.get_value();
 	return stream;
 }
 
 
-template<typename Tchar, typename T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tchar, typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase> number)
-	-> typename std::enable_if<!Tbase<T>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
+	-> typename std::enable_if<!Tbase<T, Tid>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
 {
 	type_builder::basic_number<T,Tid, Tflags, Tbase>(
-			Tbase<T>::read_istream(stream), number);
+			Tbase<T, Tid>::read_istream(stream), number);
 	return stream;
 }
 
 
-template<typename Tchar, typename T, int Tid, flag_t Tflags, template<typename> class Tbase>
+template<typename Tchar, typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
 auto operator >> (::std::basic_istream<Tchar>& stream, type_builder::basic_number<T, Tid, Tflags, Tbase> number)
-	-> typename std::enable_if<Tbase<T>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
+	-> typename std::enable_if<Tbase<T, Tid>::USE_DEFAULT_STREAM_IN, ::std::basic_istream<Tchar>&>::type 
 {
 	T tmp;
 	stream >> tmp;

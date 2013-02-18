@@ -11,7 +11,7 @@ namespace type_builder{
  * NEVER use this class to refer to a type_builder::basic_number as it has no virtual
  * destructor and will blow away all type-safety you would gain otherwise.
  */
-template<typename T>
+template<typename T, typename Tid>
 struct empty_base{
 	static constexpr T default_value(){
 		return T{};
@@ -29,7 +29,7 @@ struct empty_base{
  * 
  * Note that this might still not be enough for many design-patterns; provide your own base if you need it.
  */
-template <typename T>
+template <typename T, typename Tid>
 struct virtual_empty_base{
 	
 	static constexpr T default_value(){

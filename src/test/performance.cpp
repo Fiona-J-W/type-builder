@@ -8,12 +8,12 @@ enum: type_builder::flag_t{
 		| type_builder::ENABLE_MODULO
 };
 
-enum{
-	int_type
-};
+
+struct int_type{};
+struct int_type_2{};
 
 using Int = type_builder::basic_number<int, int_type, int_type_settings>;
-using Int2 = type_builder::basic_number<int, int_type, int_type_settings | type_builder::ENABLE_NATIVE_TYPING>;
+using Int2 = type_builder::basic_number<int, int_type_2, int_type_settings | type_builder::ENABLE_NATIVE_TYPING>;
 
 int main(int argc, char** argv){
 	if(argc!=3){
