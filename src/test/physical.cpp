@@ -26,7 +26,7 @@ struct physical_base : public type_builder::empty_base<T, Tid>{
 	static std::basic_string<Tchar> format(T value){
 		//this is just a test so let's asume usage only with utf8:
 		static_assert(std::is_same<Tchar, char>::value, 
-				"cannot print meter with another format than utf8");
+				"cannot print physical with another format than utf8");
 		using std::to_string;
 		
 		std::string returnstring{to_string(value)};
