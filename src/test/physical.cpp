@@ -2,7 +2,10 @@
 #include <cassert>
 #include <sstream>
 
-#include "physical.hpp"
+#include "../include/physical.hpp"
+
+using type_builder::meter;
+using type_builder::seconds;
 
 using meter_per_second = decltype(meter{} / seconds{});
 using square_meter = decltype(meter{} * meter{});

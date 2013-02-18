@@ -1,6 +1,11 @@
-#include "../include/basic_number.hpp"
+#ifndef TYPE_BUILDER_PHYSICAL_HPP
+#define TYPE_BUILDER_PHYSICAL_HPP
+
+#include "basic_number.hpp"
 #include "utility"
 #include <stdexcept>
+
+namespace type_builder{
 
 template<int Tm, int Tkg, int Ts, int TA, int TK, int Tmol, int Tcd>
 class _physical_t{
@@ -25,7 +30,7 @@ public:
 };
 
 template<typename T, class Tid>
-class _physical_base : public type_builder::empty_base<T, Tid>{	
+class _physical_base : public empty_base<T, Tid>{	
 public:
 	
 	template<typename Tchar>
@@ -90,9 +95,9 @@ public:
 
 
 template<int Tm, int Tkg, int Ts, int TA, int TK, int Tmol, int Tcd, typename T>
-using physical = type_builder::basic_number<T, _physical_t<Tm, Tkg, Ts, TA, TK, Tmol, Tcd>, 
-	type_builder::ENABLE_SPECIFIC_PLUS_MINUS | type_builder::ENABLE_FLOAT_MULT_DIV
-	| type_builder::ENABLE_SPECIFIC_ORDERING, _physical_base>;
+using physical = basic_number<T, _physical_t<Tm, Tkg, Ts, TA, TK, Tmol, Tcd>, 
+	ENABLE_SPECIFIC_PLUS_MINUS | ENABLE_FLOAT_MULT_DIV | ENABLE_SPECIFIC_ORDERING,
+	_physical_base>;
 
 template<int Tm1, int Tkg1, int Ts1, int TA1, int TK1, int Tmol1, int Tcd1, typename T1, 
 	int Tm2, int Tkg2, int Ts2, int TA2, int TK2, int Tmol2, int Tcd2, typename T2>
@@ -150,3 +155,7 @@ using mol = molT<default_physical_t>;
 template<typename T>
 using candelaT = physical<0,0,0,0,0,0,1,T>;
 using candela =  candelaT<default_physical_t>;
+
+} // namespace type_builder
+
+#endif
