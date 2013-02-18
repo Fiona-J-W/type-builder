@@ -11,8 +11,8 @@ int main(){
 	seconds t{3.0};
 	meter_per_second s1{10.0}, s2{l/t};
 	square_meter area{100};
-	std::cout << "speed: " << s2 << std::endl;
-	std::cout << "distance: " << s1*t << std::endl;
+	std::cout << "speed: " << s1 << std::endl;
+	std::cout << "distance: " << s2*t << std::endl;
 	std::cout << "area: " << l * l << std::endl;
 	assert(2*l*2*l*2 == 8*area);
 	std::cout << "volume: " << l * l * l << std::endl;
