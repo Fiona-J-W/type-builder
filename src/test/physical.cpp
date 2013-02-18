@@ -18,7 +18,7 @@ int main(){
 	std::cout << "speed: " << s1 << std::endl;
 	std::cout << "distance: " << s2*t << std::endl;
 	std::cout << "area: " << l * l << std::endl;
-	assert(2*l*2*l*2 == 8*area);
+	assert(2*l*2*l*2 == 8.0*area);
 	std::cout << "volume: " << l * l * l << std::endl;
 	
 	std::stringstream teststream;

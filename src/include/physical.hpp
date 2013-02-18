@@ -96,7 +96,7 @@ public:
 
 template<int Tm, int Tkg, int Ts, int TA, int TK, int Tmol, int Tcd, typename T>
 using physical = basic_number<T, _physical_t<Tm, Tkg, Ts, TA, TK, Tmol, Tcd>, 
-	ENABLE_SPECIFIC_PLUS_MINUS | ENABLE_FLOAT_MULT_DIV | ENABLE_SPECIFIC_ORDERING,
+	ENABLE_SPECIFIC_PLUS_MINUS | ENABLE_BASE_MULT_DIV | ENABLE_SPECIFIC_ORDERING,
 	_physical_base>;
 
 template<int Tm1, int Tkg1, int Ts1, int TA1, int TK1, int Tmol1, int Tcd1, typename T1, 
