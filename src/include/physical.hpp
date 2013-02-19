@@ -2,7 +2,8 @@
 #define TYPE_BUILDER_PHYSICAL_HPP
 
 #include "basic_number.hpp"
-#include "utility"
+#include <utility>
+#include <string>
 #include <stdexcept>
 
 namespace type_builder{
