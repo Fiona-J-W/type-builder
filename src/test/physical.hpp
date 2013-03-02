@@ -1,7 +1,7 @@
 #ifndef TYPE_BUILDER_PHYSICAL_HPP
 #define TYPE_BUILDER_PHYSICAL_HPP
 
-#include "basic_number.hpp"
+#include "../include/basic_number.hpp"
 #include <utility>
 #include <string>
 #include <stdexcept>

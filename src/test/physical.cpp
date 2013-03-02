@@ -2,7 +2,7 @@
 #include <cassert>
 #include <sstream>
 
-#include "../include/physical.hpp"
+#include "physical.hpp"
 
 using type_builder::meter;
 using type_builder::seconds;
@@ -13,7 +13,8 @@ using square_meter = decltype(meter{} * meter{});
 int main(){
 	meter l{10.0};
 	seconds t{3.0};
-	meter_per_second s1{10.0}, s2{l/t};
+	meter_per_second s1{10.0};
+	auto s2 = l/t;
 	square_meter area{100};
 	std::cout << "speed: " << s1 << std::endl;
 	std::cout << "distance: " << s2*t << std::endl;
