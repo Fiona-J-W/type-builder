@@ -81,7 +81,8 @@ class basic_number: public Tbase<T, Tid> {
 	template<typename Targ>
 	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
 		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : is_this<basic_number<Targ, Tid, Tflags, Tbase>>::value
+			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : 
+				static_cast<bool>(is_this<basic_number<Targ, Tid, Tflags, Tbase>>::value)
 		};
 	};
 	
