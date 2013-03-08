@@ -12,7 +12,7 @@
 #ifdef __GNUC__ 
 #	if __GNUC__ <= 4 && __GNUC_MINOR__ < 8
 #		ifndef __llvm__ // clang LIES to us, so we need to test for it too...
-#			warning "compiling with broken gcc; the value in basic_number will be public"
+#			pragma message "compiling with broken gcc; the value in basic_number will be public"
 #			define BROKEN_GCC_VERSION
 #		endif
 #	endif
@@ -34,12 +34,14 @@ class basic_number: public Tbase<T, Tid> {
 	//put the private stuff to the begining because we will need it in 
 	// signatures:
 	
-	/**
-	 * @brief The value of the number.
-	 */
 #ifdef BROKEN_GCC_VERSION // needed for usage of decltype in signatures
 	public:
 #endif
+	/**
+	 * @brief The value of the number.
+	 * @note This member is made private for gcc in versions < 4.8 because of a compiler-bug. Nevertheless it shall
+	 *       be considered undefined behaviour to access this variable directly.
+	 */
 	T value;
 #ifdef BROKEN_GCC_VERSION 
 	private:

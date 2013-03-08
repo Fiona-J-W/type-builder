@@ -68,9 +68,7 @@ This is the part where Type Builder will help you a lot. The code can be reduced
 
 ```c++
 
-// completly distinct types (enforced by the second template-parameter 
-// (I admit that this is not the most beautiful thing but definitly much 
-// more beautifull than lots of copy-paste-code):
+// completly distinct types (enforced by the second template-parameter)
 struct x_coord_id_t{};
 using x_coord = type_builder::basic_number<int, x_coord_id_t, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
 struct y_coord_id_t{};
@@ -129,8 +127,8 @@ The function takes three template-arguments:
 	number-types do, but the usage of the built-in ones is usually a good choice.
 2. Tid = A type (may be empty) that is used to identify the logical type. This has to be unique for every semantic 
 	type, even if they have otherwise different template-arguments (doing anything else shall be considered undefined
-	behaviour. The recommended way is in general to create an empty directly before the creation of the new type that is
-	only used for this purpose (see example above).
+	behaviour. The recommended way is in general to create an empty one directly before the creation of the new 
+	type and using it only for this purpose (see example above).
 3. Tflags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
 	description can be found in the description of the settings-enum below.
 4. Tbase = The base type of the basic\_number. This defaults to a do-nothing base but might be changed to enable some 
