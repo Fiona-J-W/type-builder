@@ -44,6 +44,6 @@ struct virtual_empty_base{
 	virtual ~virtual_empty_base() = 0;
 };
 
-}
+} //namespace type_builder
 
 #endif

@@ -8,7 +8,9 @@ namespace type_builder{
 using flag_t = uint64_t;
 
 /**
- * @brief A collection of the available flags for basic_number.
+ * @brief A collection of the available fundamental flags for basic_number.
+ * @note Flags with a _O_-postfix are exclusivly for the implementation of
+ *       basic_number and must not be used in user-code.
  */
 enum: flag_t{
 	ENABLE_GENERAL_CONSTRUCTION = flag_t{1},
@@ -45,9 +47,12 @@ enum: flag_t{
 	ENABLE_NATIVE_TYPING = flag_t{1} << 30,
 	
 	DISABLE_CONSTRUCTION = flag_t{1} << 60,
-	DISABLE_MUTABILITY = flag_t{1} << 61,
+	DISABLE_MUTABILITY = flag_t{1} << 61
 };
 
+/**
+ * @brief A collection of combined flags for basic_number.
+ */
 enum: flag_t{
 	ENABLE_SPECIFIC_ORDERING = ENABLE_SPECIFIC_EQUALITY_CHECK | ENABLE_SPECIFIC_ORDERING_O_,
 	ENABLE_EQUALITY_CHECK = ENABLE_SPECIFIC_EQUALITY_CHECK | ENABLE_EQUALITY_CHECK_O_,

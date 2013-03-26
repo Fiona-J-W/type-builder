@@ -4,16 +4,32 @@
 
 #include "physical.hpp"
 
-using type_builder::meter;
-using type_builder::seconds;
 
-using meter_per_second = decltype(meter{} / seconds{});
-using square_meter = decltype(meter{} * meter{});
+using meter_per_second = decltype(meter{1.0} / seconds{1.0});
+using square_meter = decltype(meter{1.0} * meter{1.0});
+
+meter_per_second operator"" _mps(long double val){
+	return meter_per_second{val};
+}
+
+square_meter operator"" _m2(long double val){
+	return square_meter{val};
+}
+
+meter operator"" _m(long double val){
+	return meter{val};
+}
+
+seconds operator"" _s(long double val){
+	return seconds{val};
+}
+
 
 int main(){
-	meter l{10.0};
-	seconds t{3.0};
-	meter_per_second s1{10.0};
+	auto l = 10.0_m;
+	auto t = 3.0_s;
+	//meter_per_second s1{10.0};
+	auto s1 = 10.0_mps;
 	auto s2 = l/t;
 	square_meter area{100};
 	std::cout << "speed: " << s1 << std::endl;
@@ -28,8 +44,8 @@ int main(){
 	teststream >> area_2;
 	assert(area == area_2);
 	
-	meter m{0};
-	seconds s{0};
+	auto m = 0.0_m;
+	auto s = 0.0_s;
 	std::cout << "meter> ";
 	std::cin >> m;
 	std::cout << m << "\nseconds> ";

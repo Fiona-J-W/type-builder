@@ -60,8 +60,6 @@ class point{
 		
 		point(const point& other) = default;
 		
-		point(): x(static_cast<T>(0)), y(static_cast<T>(0)) {}
-		
 		bool operator==(const point& other) const;
 		
 		bool operator!=(const point& other) const;
