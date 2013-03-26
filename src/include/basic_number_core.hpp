@@ -63,13 +63,37 @@ class basic_number: protected Tbase<T, Tid> {
 	static_assert(!is_this<int>::value, "is_this doesn't work.");
 	
 	/**
+	 * @brief Checks whether a flag is set.
+	 * @param Tflag the flag to be checked
+	 * @return true if Tflag is set, false otherwise
+	 */
+	template<flag_t Tflag>
+	struct flag_set{
+		enum{
+			value = (Tflags & Tflag) != 0 ? true : false
+		};
+	};
+	
+	/**
+	 * @brief Checks whether a flag is unset.
+	 * @param Tflag the flag to be checked
+	 * @return true if Tflag is unset, false otherwise
+	 */
+	template<flag_t Tflag>
+	struct flag_unset{
+		enum{
+			value = ! flag_set<Tflag>::value
+		};
+	};
+	
+	/**
 	 * @brief Provides the correct returntype for some functions.
 	 * @param T1 the return type if native typing is enabled
 	 * @param T2 the return type if native typing is disabled
 	 */
 	template<typename T1, typename T2>
 	struct return_type{
-		using type = typename std::conditional<(Tflags & ENABLE_NATIVE_TYPING) != 0, T1, T2>::type;
+		using type = typename std::conditional<flag_set<ENABLE_NATIVE_TYPING>::value, T1, T2>::type;
 	};
 	
 	// implementation for is_equivalent_basic_number
@@ -83,7 +107,7 @@ class basic_number: protected Tbase<T, Tid> {
 	template<typename Targ>
 	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
 		enum : bool{
-			value = (Tflags & ENABLE_NATIVE_TYPING) ? true : 
+			value = flag_set<ENABLE_NATIVE_TYPING>::value ? true : 
 				static_cast<bool>(is_this<basic_number<Targ, Tid, Tflags, Tbase>>::value)
 		};
 	};
@@ -113,30 +137,6 @@ class basic_number: protected Tbase<T, Tid> {
 		"is_equivalent_basic_number doesn't work.");
 	static_assert(is_equivalent_basic_number<basic_number&&>::value, 
 		"is_equivalent_basic_number doesn't work.");
-	
-	/**
-	 * @brief Checks whether a flag is set.
-	 * @param Tflag the flag to be checked
-	 * @return true if Tflag is set, false otherwise
-	 */
-	template<flag_t Tflag>
-	struct flag_set{
-		enum{
-			value = (Tflags & Tflag) != 0 ? true : false
-		};
-	};
-	
-	/**
-	 * @brief Checks whether a flag is unset.
-	 * @param Tflag the flag to be checked
-	 * @return true if Tflag is unset, false otherwise
-	 */
-	template<flag_t Tflag>
-	struct flag_unset{
-		enum{
-			value = ! flag_set<Tflag>::value
-		};
-	};
 	
 	public:
 		
@@ -337,39 +337,39 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number& operator++(){
-			static_assert( !(Tflags & DISABLE_MUTABILITY),
+			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(Tflags & ENABLE_INC_DEC,
+			static_assert(flag_set<ENABLE_INC_DEC>::value,
 					"increment not enabled for this number-type");
 			++value;
 			return *this;
 		}
 		
 		basic_number operator++(int){
-			static_assert( !(Tflags & DISABLE_MUTABILITY),
+			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(Tflags & ENABLE_INC_DEC,
+			static_assert(flag_set<ENABLE_INC_DEC>::value,
 					"increment not enabled for this number-type");
 			return basic_number(value++);
 		}
 		
 		basic_number& operator--(){
-			static_assert( !(Tflags & DISABLE_MUTABILITY),
+			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(Tflags & ENABLE_INC_DEC,
+			static_assert(flag_set<ENABLE_INC_DEC>::value,
 					"increment not enabled for this number-type");
 			--value;
 			return *this;
 		}
 		
 		basic_number operator--(int){
-			static_assert( !(Tflags & DISABLE_MUTABILITY),
+			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(Tflags & ENABLE_INC_DEC,
+			static_assert(flag_set<ENABLE_INC_DEC>::value,
 					"increment not enabled for this number-type");
 			return basic_number(value--);
 		}
@@ -470,8 +470,8 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this -= Tother
 		template<typename Tother>
 		typename std::enable_if< !is_equivalent_basic_number<Tother>::value
-			&& flag_unset<Tflags & DISABLE_MUTABILITY>::value
-			&& flag_set<Tflags & ENABLE_GENERAL_PLUS_MINUS>::value, basic_number&>::type
+			&& flag_unset<DISABLE_MUTABILITY>::value
+			&& flag_set<ENABLE_GENERAL_PLUS_MINUS>::value, basic_number&>::type
 		operator-=(const Tother& other){
 			value -= other;
 			return *this;
@@ -593,7 +593,7 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this /= Tother
 		template<typename Tother>
 		typename std::enable_if< !is_equivalent_basic_number<Tother>::value
-			&& !(Tflags & DISABLE_MUTABILITY)
+			&& flag_unset<DISABLE_MUTABILITY>::value
 			&& (flag_set<ENABLE_GENERAL_DIVISION>::value
 				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
 					&& flag_set<ENABLE_FLOAT_DIVISION_O_>::value)
