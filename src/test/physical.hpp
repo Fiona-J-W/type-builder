@@ -12,7 +12,7 @@ public:
 	enum: int{
 		m = Tm,     // meter
 		kg = Tkg,   // kilogramm
-		s = Ts,     // seconds
+		s = Ts,     // second
 		A = TA,     // ampere
 		K = TK,     // kelvin
 		mol = Tmol, // mol
@@ -39,14 +39,15 @@ public:
 		using std::to_string;
 		
 		std::basic_string<Tchar> returnstring;
+		using p_int_str = std::pair<const int, const std::string>;
 		for(const auto& unit: {
-				std::pair<const int, const std::string>{Tid::m,"m"},
-				std::pair<const int, const std::string>{Tid::kg,"kg"},
-				std::pair<const int, const std::string>{Tid::s,"s"},
-				std::pair<const int, const std::string>{Tid::A,"A"},
-				std::pair<const int, const std::string>{Tid::K,"K"},
-				std::pair<const int, const std::string>{Tid::mol,"mol"},
-				std::pair<const int, const std::string>{Tid::cd,"cd"}
+				p_int_str{Tid::m,"m"},
+				p_int_str{Tid::kg,"kg"},
+				p_int_str{Tid::s,"s"},
+				p_int_str{Tid::A,"A"},
+				p_int_str{Tid::K,"K"},
+				p_int_str{Tid::mol,"mol"},
+				p_int_str{Tid::cd,"cd"}
 		}){	
 			if(unit.first == 1){
 				returnstring += unit.second;
@@ -128,32 +129,31 @@ using default_physical_t = double;
 
 // base-units:
 template<typename T>
-using meterT = physical<1,0,0,0,0,0,0,T>;
-using meter = meterT<default_physical_t>;
-
-
-template<typename T>
-using kilogrammT = physical<0,1,0,0,0,0,0,T>;
-using kilogramm = kilogrammT<default_physical_t>;
+using meter_t = physical<1,0,0,0,0,0,0,T>;
+using meter = meter_t<default_physical_t>;
 
 template<typename T>
-using secondsT = physical<0,0,1,0,0,0,0,T>;
-using seconds = secondsT<default_physical_t>;
+using kilogramm_t = physical<0,1,0,0,0,0,0,T>;
+using kilogramm = kilogramm_t<default_physical_t>;
 
 template<typename T>
-using ampereT = physical<0,0,0,1,0,0,0,T>;
-using ampere = ampereT<default_physical_t>;
+using second_t = physical<0,0,1,0,0,0,0,T>;
+using second = second_t<default_physical_t>;
 
 template<typename T>
-using kelvinT = physical<0,0,0,0,1,0,0,T>;
-using kelvin = kelvinT<default_physical_t>;
+using ampere_t = physical<0,0,0,1,0,0,0,T>;
+using ampere = ampere_t<default_physical_t>;
 
 template<typename T>
-using molT = physical<0,0,0,0,0,1,0,T>;
-using mol = molT<default_physical_t>;
+using kelvin_t = physical<0,0,0,0,1,0,0,T>;
+using kelvin = kelvin_t<default_physical_t>;
 
 template<typename T>
-using candelaT = physical<0,0,0,0,0,0,1,T>;
-using candela =  candelaT<default_physical_t>;
+using mol_t = physical<0,0,0,0,0,1,0,T>;
+using mol = mol_t<default_physical_t>;
+
+template<typename T>
+using candela_t = physical<0,0,0,0,0,0,1,T>;
+using candela =  candela_t<default_physical_t>;
 
 #endif

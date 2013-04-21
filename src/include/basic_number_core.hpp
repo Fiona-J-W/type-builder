@@ -12,7 +12,7 @@
 #ifdef __GNUC__ 
 #	if __GNUC__ <= 4 && __GNUC_MINOR__ < 8
 #		ifndef __llvm__ // clang LIES to us, so we need to test for it too...
-#			pragma message "compiling with broken gcc; the value in basic_number will be public"
+//#			pragma message "compiling with broken gcc; the value in basic_number will be public"
 #			define BROKEN_GCC_VERSION
 #		endif
 #	endif
@@ -355,7 +355,7 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number& operator++(){
-			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
 			static_assert(flag_set<ENABLE_INC_DEC>::value,
@@ -365,7 +365,7 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number operator++(int){
-			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
 			static_assert(flag_set<ENABLE_INC_DEC>::value,
@@ -374,7 +374,7 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number& operator--(){
-			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
 			static_assert(flag_set<ENABLE_INC_DEC>::value,
@@ -384,12 +384,20 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number operator--(int){
-			static_assert( flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
 					"You cannot change the value of an instance "
 					"of an immutable type");
 			static_assert(flag_set<ENABLE_INC_DEC>::value,
 					"increment not enabled for this number-type");
 			return basic_number(value--);
+		}
+		
+		// unary -
+		template<
+			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+		>
+		basic_number operator-(){
+			return basic_number{ -value };
 		}
 		
 		

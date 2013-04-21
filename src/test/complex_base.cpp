@@ -14,6 +14,8 @@ int main(){
 	std::cout << c1 << "; " << c2 << std::endl;
 	std::cout << c1 + c2 << std::endl;
 	std::cout << (c1+c2)*cmplx{3} << std::endl;
+	std::cout << (c1+c2)*cmplx{3,4} << std::endl;
+	std::cout << (c1+c2)*cmplx{0,1} << std::endl;
 	std::cout << (c1+c2)*5.0 << std::endl;
 }
 	

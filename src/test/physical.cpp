@@ -3,9 +3,9 @@
 #include <sstream>
 
 #include "physical.hpp"
+#include <type_traits>
 
-
-using meter_per_second = decltype(meter{1.0} / seconds{1.0});
+using meter_per_second = decltype(meter{1.0} / second{1.0});
 using square_meter = decltype(meter{1.0} * meter{1.0});
 
 meter_per_second operator"" _mps(long double val){
@@ -20,8 +20,8 @@ meter operator"" _m(long double val){
 	return meter{val};
 }
 
-seconds operator"" _s(long double val){
-	return seconds{val};
+second operator"" _s(long double val){
+	return second{val};
 }
 
 
@@ -48,7 +48,7 @@ int main(){
 	auto s = 0.0_s;
 	std::cout << "meter> ";
 	std::cin >> m;
-	std::cout << m << "\nseconds> ";
+	std::cout << m << "\nsecond> ";
 	std::cin >> s;
 	std::cout << s << std::endl;
 }
