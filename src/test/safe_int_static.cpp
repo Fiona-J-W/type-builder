@@ -241,4 +241,6 @@ static_assert(std::is_same<decltype(-std::declval<U16>()), I16>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U32>()), I32>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U64>()), I64>::value,"");
 
+static_assert(!U08{},"");
+
 int main(){}

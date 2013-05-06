@@ -10,7 +10,13 @@
 namespace type_builder {
 
 namespace impl{
-template<int Tsize, bool Tsigned> struct integer_type;
+	template<int Tsize, bool Tsigned> struct integer_type;
+	template<typename Tlhs, typename Trhs> 
+		struct shared_type; 
+	template<typename Ttarget_type, typename Tsource_type>
+		constexpr Ttarget_type checked_cast(const Tsource_type& src);
+	template<typename Tsigned, typename Tunsigned>
+		constexpr bool in_range(const Tunsigned& value);
 }
 
 template<typename T>
@@ -243,7 +249,7 @@ class safe_int{
 			return safe_int{val--};
 		}
 		
-		safe_int& operator+(){
+		constexpr safe_int& operator+(){
 			return *this;
 		}
 		
@@ -256,19 +262,19 @@ class safe_int{
 			return *this * safe_int<typename impl::integer_type<bits, true>::type>{-1};
 		}
 		
-		base_type get_value() const {
+		constexpr base_type get_value() const {
 			return val;
 		}
 		
-		operator base_type() const {
+		constexpr operator base_type() const {
 			return val;
 		}
 		
-		explicit operator bool() const{
+		constexpr explicit operator bool() const{
 			return val != 0;
 		}
 		
-		bool operator!() const{
+		constexpr bool operator!() const{
 			return val == 0;
 		}
 		
@@ -343,15 +349,6 @@ class safe_int{
 			return *this;
 		}
 };
-
-namespace impl{ 
-	template<typename Tlhs, typename Trhs> 
-		struct shared_type; 
-	template<typename Ttarget_type, typename Tsource_type>
-		Ttarget_type checked_cast(const Tsource_type& src);
-	template<typename Tsigned, typename Tunsigned>
-		bool in_range(const Tunsigned& value);
-}
 
 template<typename Tlhs, typename Trhs>
 auto operator+(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
@@ -533,30 +530,31 @@ struct shared_type{
 };
 
 template<typename Tsource_type, typename Ttarget_type, bool Trequire_check>
-void convertable_check(const Tsource_type& value){
-	if(Trequire_check){
-		if(value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max())){
-			throw std::overflow_error("conversion failure");
-		}
-	}
+constexpr bool convertable_check(const Tsource_type& value){
+	return (Trequire_check && (value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max())))
+			? throw std::overflow_error("conversion failure") 
+			: true;
+		
+	
 }
 
 template<typename Ttarget_type, typename Tsource_type>
-Ttarget_type checked_cast(const Tsource_type& src){
+constexpr Ttarget_type checked_cast(const Tsource_type& src){
 	static_assert(sizeof(Ttarget_type) == sizeof(Tsource_type),
 			"checked cast shall only be used to cast from an integer-type"
 			" to another integer-type of equal width");
-	convertable_check<
+	return convertable_check<
 		Tsource_type,
 		Ttarget_type,
 		std::is_signed<Ttarget_type>::value&&
 			(!std::is_signed<Tsource_type>::value)
-		>(src);
-	return static_cast<Ttarget_type>(src);
+		>(src) ? 
+		static_cast<Ttarget_type>(src) 
+		: /* this will never be done:*/ throw std::exception{};
 }
 
 template<typename Tsigned, typename Tunsigned>
-bool in_range(const Tunsigned& value){
+constexpr bool in_range(const Tunsigned& value){
 	return value <= static_cast<Tunsigned>(std::numeric_limits<Tsigned>::max());
 }
 
