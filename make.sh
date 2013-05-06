@@ -4,7 +4,7 @@
 #Settings:
 
 
-CFLAGS=" -O3 -Wall -Wextra -pedantic -std=c++11"
+CFLAGS=" -O0 -g -Wall -Wextra -pedantic -std=c++11"
 BINDIR="bin"
 SRC_DIR="src/test/"
 

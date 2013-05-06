@@ -39,8 +39,8 @@ class basic_number: protected Tbase<T, Tid> {
 #endif
 	/**
 	 * @brief The value of the number.
-	 * @note This member is made public for gcc in versions < 4.8 because of a compiler-bug. Nevertheless it shall
-	 *       be considered undefined behaviour to access this variable directly.
+	 * @note This member is made public for gcc in versions < 4.8 because of a compiler-bug.
+	 * Nevertheless it shall be considered undefined behaviour to access this variable directly.
 	 */
 	T value;
 #ifdef BROKEN_GCC_VERSION 
