@@ -241,6 +241,10 @@ static_assert(std::is_same<decltype(-std::declval<U16>()), I16>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U32>()), I32>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U64>()), I64>::value,"");
 
-static_assert(!U08{},"");
+static_assert(!U08{} == true, "");
+static_assert(static_cast<bool>(U08{static_cast<std::uint8_t>(1)}) == true,"");
+static_assert(static_cast<bool>(U08{static_cast<std::uint8_t>(0)}) == false,"");
+static_assert(static_cast<bool>(!U08{static_cast<std::uint8_t>(1)}) == false,"");
+static_assert(static_cast<bool>(!U08{static_cast<std::uint8_t>(0)}) == true,"");
 
 int main(){}

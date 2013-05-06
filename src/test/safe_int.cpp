@@ -22,6 +22,9 @@ using I16 = ui<std::int16_t>;
 using I32 = ui<std::int32_t>;
 using I64 = ui<std::int64_t>;
 
+using U = ui<unsigned int>;
+using I = ui<int>;
+
 #define ASSERT_THROW(expr) \
 	do{ try{ expr; assert(false); } catch (std::exception& e){ assert(true); } }while(false)
 
@@ -140,5 +143,13 @@ int main(){
 	std::stringstream stream;
 	stream << i16_0 << std::endl;
 	assert(stream.str() == "0\n");
+	
+	ASSERT_THROW(I(INT_MIN) * I(INT_MIN););
+	ASSERT_THROW(I(INT_MIN) * I(INT_MAX););
+	ASSERT_THROW(I(INT_MAX) * I(INT_MIN););
+	ASSERT_THROW(I(INT_MAX) * I(INT_MAX););
+	
+	ASSERT_THROW(U(UINT_MAX) * I(INT_MIN););
+	ASSERT_THROW(U(UINT_MAX) * I(INT_MAX););
 }
 

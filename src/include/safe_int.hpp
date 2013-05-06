@@ -17,6 +17,17 @@ namespace impl{
 		constexpr Ttarget_type checked_cast(const Tsource_type& src);
 	template<typename Tsigned, typename Tunsigned>
 		constexpr bool in_range(const Tunsigned& value);
+	
+	template<typename T, bool T_is_signed> struct sign_dependent_checks{
+		constexpr static bool is_negative(const T& arg){
+			return arg < 0;
+		}
+	};
+	template<typename T> struct sign_dependent_checks<T, false>{
+		constexpr static bool is_negative(const T&){
+			return false;
+		}
+	};
 }
 
 template<typename T>
@@ -41,10 +52,17 @@ class safe_int{
 		constexpr static auto bits = Properties::bits;
 	
 	private:
-
+		
+		constexpr static bool is_negative(const base_type& arg){
+			return impl::sign_dependent_checks<base_type, is_signed>::is_negative(arg);
+		}
+		constexpr static bool is_positive(const base_type& arg){
+			return !is_negative(arg);
+		}
+		
 		template<typename Trhs>
 		constexpr static bool shift_check(base_type lhs, Trhs rhs){
-			return (rhs < 0|| rhs>= bits || lhs<0)
+			return (is_negative(rhs) || rhs>= bits || is_negative(lhs))
 				? throw std::domain_error{""}
 				: true;
 		}
@@ -128,75 +146,44 @@ class safe_int{
 			return lhs.val >= rhs.val;
 		}
 		
-		
-		friend safe_int operator+(const safe_int& lhs, const safe_int& rhs){
-			if(rhs.val > 0){
-				if(lhs.val > max - rhs.val){
-					throw std::overflow_error{""};
-				}
-			}
-			else {
-				if(lhs.val < min - rhs.val){
-					throw std::underflow_error{""};
-				}
-			}
-			return {lhs.val + rhs.val};
+		friend constexpr safe_int operator+(const safe_int& lhs, const safe_int& rhs){
+			return (is_positive(rhs.val)&&(lhs.val > max - rhs.val)) ?
+				throw std::overflow_error{""} :
+				(lhs.val < min - rhs.val) ?
+					throw std::underflow_error{""} :
+					safe_int{ lhs.val + rhs.val };
 		}
 			
-		friend safe_int operator-(const safe_int& lhs, const safe_int& rhs){
-			if(rhs.val < 0){
-				if(lhs.val > max + rhs.val){
-					throw std::overflow_error{""};
-				}
-			}
-			else {
-				if(lhs.val < min + rhs.val){
-					throw std::underflow_error{""};
-				}
-			}
-			return {lhs.val - rhs.val};
+		friend constexpr safe_int operator-(const safe_int& lhs, const safe_int& rhs){
+			return (is_negative(rhs.val)&&(lhs.val > max + rhs.val)) ?
+				throw std::overflow_error{""} :
+				(lhs.val < min + rhs.val) ?
+					throw std::underflow_error{""} :
+					safe_int{ lhs.val - rhs.val };
 		}
 			
-		friend safe_int operator*(const safe_int& lhs, const safe_int& rhs){
-			if(rhs.val < 0){
-				if(lhs.val < 0){
-					if(lhs.val < max/rhs.val){
-						throw std::overflow_error{""};
-					}
-				}
-				else{
-					if(min/rhs.val < lhs.val){
-						throw std::overflow_error{""};
-					}
-				}
-			}
-			else{
-				if(lhs.val < 0){
-					if(min/lhs.val < rhs.val){
-						throw std::overflow_error{""};
-					}
-				}
-				else{
-					if(lhs.val > max/rhs.val){
-						throw std::overflow_error{""};
-					}
-				}
-			}
-			return {lhs.val * rhs.val};
+		friend constexpr safe_int operator*(const safe_int& lhs, const safe_int& rhs){
+			return (is_negative(rhs.val) ?
+					(is_negative(lhs.val) ?
+						!(lhs.val < max/rhs.val) :
+						!(min/rhs.val < lhs.val)) :
+					(is_negative(lhs.val) ?
+						!(min/lhs.val < rhs.val) :
+						!(max/rhs.val < lhs.val))
+				) ? safe_int{lhs.val * rhs.val} :
+				throw std::overflow_error{"overflow in multiplication"};
 		}
 			
-		friend safe_int operator/(const safe_int& lhs, const safe_int& rhs){
-			if(rhs.val == 0){
-				throw std::domain_error{"integer-division by 0"};
-			}
-			return {lhs.val / rhs.val};
+		friend constexpr safe_int operator/(const safe_int& lhs, const safe_int& rhs){
+			return (rhs.val == 0)?
+				throw std::domain_error{"integer-division by 0"}
+				: safe_int{lhs.val / rhs.val};
 		}
 			
-		friend safe_int operator%(const safe_int& lhs, const safe_int& rhs){
-			if(rhs.val == 0){
-				throw std::domain_error{"modulo of 0"};
-			}
-			return {lhs.val % rhs.val};
+		friend constexpr safe_int operator%(const safe_int& lhs, const safe_int& rhs){
+			return (rhs.val == 0)?
+				throw std::domain_error{"modulo of 0"}
+				: safe_int{lhs.val % rhs.val};
 		}
 		
 		safe_int& operator+=(const safe_int& other){
@@ -356,9 +343,8 @@ auto operator+(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
 	typedef safe_int<return_base> return_type;
-	auto c_lhs = return_type{impl::checked_cast<return_base>(lhs.get_value())};
-	auto c_rhs = return_type{impl::checked_cast<return_base>(rhs.get_value())};
-	return c_lhs + c_rhs;
+	return return_type{impl::checked_cast<return_base>(lhs.get_value())} +
+		return_type{impl::checked_cast<return_base>(rhs.get_value())};
 }
 
 
@@ -368,9 +354,8 @@ auto operator-(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
 	typedef safe_int<return_base> return_type;
-	auto c_lhs = return_type{impl::checked_cast<return_base>(lhs.get_value())};
-	auto c_rhs = return_type{impl::checked_cast<return_base>(rhs.get_value())};
-	return c_lhs - c_rhs;
+	return return_type{impl::checked_cast<return_base>(lhs.get_value())} -
+		return_type{impl::checked_cast<return_base>(rhs.get_value())};
 }
 
 template<typename Tlhs, typename Trhs>
@@ -379,20 +364,28 @@ auto operator*(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
 	typedef safe_int<return_base> return_type;
-	auto c_lhs = return_type{impl::checked_cast<return_base>(lhs.get_value())};
-	auto c_rhs = return_type{impl::checked_cast<return_base>(rhs.get_value())};
-	return c_lhs * c_rhs;
+	return return_type{impl::checked_cast<return_base>(lhs.get_value())} *
+		return_type{impl::checked_cast<return_base>(rhs.get_value())};
 }
 
 template<typename Tlhs, typename Trhs>
-auto operator/(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
+constexpr auto operator/(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 -> safe_int<typename impl::shared_type<Tlhs, Trhs>::type>
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
 	typedef safe_int<return_base> return_type;
-	auto c_lhs = return_type{impl::checked_cast<return_base>(lhs.get_value())};
-	auto c_rhs = return_type{impl::checked_cast<return_base>(rhs.get_value())};
-	return c_lhs / c_rhs;
+	return return_type{impl::checked_cast<return_base>(lhs.get_value())} /
+		return_type{impl::checked_cast<return_base>(rhs.get_value())};
+}
+
+template<typename Tlhs, typename Trhs>
+constexpr auto operator%(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
+-> safe_int<typename impl::shared_type<Tlhs, Trhs>::type>
+{
+	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
+	typedef safe_int<return_base> return_type;
+	return return_type{impl::checked_cast<return_base>(lhs.get_value())} %
+		return_type{impl::checked_cast<return_base>(rhs.get_value())};
 }
 
 // comparisions:
@@ -530,25 +523,32 @@ struct shared_type{
 };
 
 template<typename Tsource_type, typename Ttarget_type, bool Trequire_check>
-constexpr bool convertable_check(const Tsource_type& value){
-	return (Trequire_check && (value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max())))
+struct convertable_check{
+	constexpr static bool check(const Tsource_type& value){
+	return (value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max()))
 			? throw std::overflow_error("conversion failure") 
 			: true;
-		
-	
-}
+	}
+};
+template<typename Tsource_type, typename Ttarget_type>
+struct convertable_check<Tsource_type, Ttarget_type, false>{
+	constexpr static bool check(const Tsource_type&){
+		return true;
+	}
+};
 
 template<typename Ttarget_type, typename Tsource_type>
 constexpr Ttarget_type checked_cast(const Tsource_type& src){
-	static_assert(sizeof(Ttarget_type) == sizeof(Tsource_type),
-			"checked cast shall only be used to cast from an integer-type"
-			" to another integer-type of equal width");
+	static_assert(sizeof(Ttarget_type) >= sizeof(Tsource_type), 
+			"checked cast is not to be used for narrowing casts");
+	static_assert(std::is_signed<Tsource_type>::value ? std::is_signed<Ttarget_type>::value : true,
+			"checked cast does not cast from signed to unsigned");
 	return convertable_check<
 		Tsource_type,
 		Ttarget_type,
 		std::is_signed<Ttarget_type>::value&&
 			(!std::is_signed<Tsource_type>::value)
-		>(src) ? 
+		>::check(src) ? 
 		static_cast<Ttarget_type>(src) 
 		: /* this will never be done:*/ throw std::exception{};
 }
