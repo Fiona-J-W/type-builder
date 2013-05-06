@@ -33,7 +33,17 @@ class safe_int{
 		constexpr static auto max = Properties::max;
 		constexpr static auto min = Properties::min;
 		constexpr static auto bits = Properties::bits;
+	
+	private:
+
+		template<typename Trhs>
+		constexpr static bool shift_check(base_type lhs, Trhs rhs){
+			return (rhs < 0|| rhs>= bits || lhs<0)
+				? throw std::domain_error{""}
+				: true;
+		}
 		
+	public:
 		
 		constexpr safe_int(): val{0}{}
 		
@@ -246,7 +256,6 @@ class safe_int{
 			return *this * safe_int<typename impl::integer_type<bits, true>::type>{-1};
 		}
 		
-		
 		base_type get_value() const {
 			return val;
 		}
@@ -257,6 +266,81 @@ class safe_int{
 		
 		explicit operator bool() const{
 			return val != 0;
+		}
+		
+		bool operator!() const{
+			return val == 0;
+		}
+		
+		// the bit-stuff:
+		constexpr friend safe_int operator|(const safe_int& lhs, const safe_int& rhs){
+			return safe_int{lhs.val|rhs.val};
+		}
+		safe_int& operator|=(const safe_int& other){
+			val|=other;
+			return *this;
+		}
+		
+		constexpr friend safe_int operator&(const safe_int& lhs, const safe_int& rhs){
+			return safe_int{lhs.val&rhs.val};
+		}
+		safe_int& operator&=(const safe_int& other){
+			val&=other;
+			return *this;
+		}
+		
+		constexpr friend safe_int operator^(const safe_int& lhs, const safe_int& rhs){
+			return safe_int{lhs.val^rhs.val};
+		}
+		safe_int& operator^=(const safe_int& other){
+			val^=other;
+			return *this;
+		}
+		
+		constexpr safe_int operator~(){
+			return safe_int{~val};
+		}
+		
+		template<typename Targ>
+		constexpr friend safe_int operator<<(const safe_int& lhs, const safe_int<Targ>& rhs){
+			return shift_check(lhs.val, rhs.val), safe_int{lhs.val<<rhs.val};
+		}
+		template<typename Targ>
+		safe_int& operator <<=(const safe_int<Targ>& other){
+			shift_check(val, other.val);
+			val<<=other.val;
+			return *this;
+		}
+		template<typename Targ>
+		constexpr friend safe_int operator<<(const safe_int& lhs, const Targ& rhs){
+			return shift_check(lhs.val, rhs),  safe_int{lhs.val<<rhs};
+		}
+		template<typename Targ>
+		safe_int& operator <<=(const Targ& other){
+			shift_check(val, other);
+			val<<=other;
+			return *this;
+		}
+		
+		template<typename Targ>
+		constexpr friend safe_int operator>>(const safe_int& lhs, const safe_int<Targ>& rhs){
+				return shift_check(lhs.val, rhs.val), safe_int{lhs.val>>rhs.val};
+		}
+		template<typename Targ>
+		safe_int& operator >>=(const safe_int<Targ>& other){
+			shift_check(val, other.val);
+			val>>=other.val;
+			return *this;
+		}
+		template<typename Targ>
+		constexpr friend safe_int operator>>(const safe_int& lhs, const Targ& rhs){
+				return shift_check(lhs.val, rhs), safe_int{lhs.val>>rhs};
+		}
+		template<typename Targ>
+		safe_int& operator >>=(const Targ& other){
+			shift_check(val, other);
+			val>>=other;
+			return *this;
 		}
 };
 
