@@ -6,8 +6,15 @@
 #include <limits>
 #include <climits>
 #include <stdexcept>
+#include <iosfwd>
 
 namespace type_builder {
+
+template<typename T> class safe_int;
+template<typename Tlhs, typename Trhs>
+bool operator<(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs);
+template<typename Tlhs, typename Trhs>
+bool operator>(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs);
 
 namespace impl{
 	template<int Tsize, bool Tsigned> struct integer_type;
@@ -31,30 +38,27 @@ namespace impl{
 }
 
 template<typename T>
-struct safe_int_default_properties{
-	typedef T base_type;
-	constexpr static bool is_signed = std::is_signed<T>::value;
-	constexpr static base_type max = std::numeric_limits<T>::max();
-	constexpr static base_type min = std::numeric_limits<T>::min();
-	constexpr static int bits = sizeof(T) * CHAR_BIT;
-};
-
-template<typename T, typename Properties = safe_int_default_properties<T>>
 class safe_int{
 	static_assert(std::is_integral<T>::value, "safe_int holds only integral types");
 	T val;
 	
 	public:
 		typedef T base_type;
-		constexpr static auto is_signed = Properties::is_signed;
-		constexpr static auto max = Properties::max;
-		constexpr static auto min = Properties::min;
-		constexpr static auto bits = Properties::bits;
-	
+		constexpr static bool is_signed = std::is_signed<T>::value;
+		constexpr static base_type max = std::numeric_limits<T>::max();
+		constexpr static base_type min = std::numeric_limits<T>::min();
+		constexpr static base_type default_value = static_cast<T>(0);
+		constexpr static int bits = sizeof(T) * CHAR_BIT;
+		
+		static_assert(min <= default_value && default_value <= max, 
+				"min <= default_value <= max");
 	private:
 		
 		constexpr static bool is_negative(const base_type& arg){
-			return impl::sign_dependent_checks<base_type, is_signed>::is_negative(arg);
+			return impl::sign_dependent_checks<base_type, 
+					impl::sign_dependent_checks<base_type, is_signed
+					>::is_negative(min)
+				>::is_negative(arg);
 		}
 		constexpr static bool is_positive(const base_type& arg){
 			return !is_negative(arg);
@@ -69,62 +73,23 @@ class safe_int{
 		
 	public:
 		
-		constexpr safe_int(): val{0}{}
+		constexpr safe_int(): val{default_value}{}
 		
 		//non-explicit constructor because we want to have implicit conversions
 		constexpr safe_int(T val): val{val}{}
 		
-		safe_int(const safe_int& other) = default;
+		constexpr safe_int(const safe_int& other): val{other.val}{}
 		
-		safe_int& operator=(const safe_int& other) = default;
+		template<typename Targ>
+		constexpr safe_int(const Targ& arg) : val{
+			((safe_int<Targ>{arg} < safe_int{min}) 
+			 || (safe_int<Targ>{arg} > safe_int{max}))?
+				throw std::out_of_range{""} :
+				static_cast<base_type>(arg)
+		}{}
 		
-		template<typename Tother,
-			typename = typename std::enable_if<!std::is_same<Tother,T>::value>::type,
-			typename = typename std::enable_if<std::is_integral<Tother>::value>::type,
-			typename = typename std::enable_if<
-				std::is_signed<Tother>::value && std::is_signed<T>::value
-			>::type
-		>
-		safe_int(const Tother& val): val(val) {
-			if(val > max || val < min){
-				throw std::overflow_error{""};
-			}
-		}
-		
-		template<typename Tother,
-			typename = typename std::enable_if<!std::is_same<Tother,T>::value>::type,
-			typename = typename std::enable_if<std::is_integral<Tother>::value>::type,
-			typename = typename std::enable_if<
-				!std::is_signed<Tother>::value && !std::is_signed<T>::value>::type,
-			typename = void>
-		safe_int(const Tother& val): val(val) {
-			if(val > max){
-				throw std::overflow_error{""};
-			}
-		}
-		
-		template<typename Tother,
-			typename = typename std::enable_if<!std::is_same<Tother,T>::value>::type,
-			typename = typename std::enable_if<std::is_integral<Tother>::value>::type,
-			typename = typename std::enable_if<
-				!std::is_signed<Tother>::value && std::is_signed<T>::value>::type,
-			typename = void, typename = void>
-		safe_int(const Tother& val): val(val) {
-			if(val > max){
-				throw std::overflow_error{""};
-			}
-		}
-		
-		template<typename Tother,
-			typename = typename std::enable_if<!std::is_same<Tother,T>::value>::type,
-			typename = typename std::enable_if<std::is_integral<Tother>::value>::type,
-			typename = typename std::enable_if<
-				std::is_signed<Tother>::value && !std::is_signed<T>::value>::type,
-			typename = void, typename = void, typename = void>
-		safe_int(const Tother& val): val(val) {
-			if(val > max || val < 0){
-				throw std::overflow_error{""};
-			}
+		safe_int& operator=(const safe_int& other){
+			return (val = other.val), *this;
 		}
 		
 		friend constexpr bool operator==(const safe_int& lhs, const safe_int& rhs){
@@ -165,13 +130,13 @@ class safe_int{
 		friend constexpr safe_int operator*(const safe_int& lhs, const safe_int& rhs){
 			return (is_negative(rhs.val) ?
 					(is_negative(lhs.val) ?
-						!(lhs.val < max/rhs.val) :
-						!(min/rhs.val < lhs.val)) :
+						(lhs.val < max/rhs.val) :
+						(min/rhs.val < lhs.val)) :
 					(is_negative(lhs.val) ?
-						!(min/lhs.val < rhs.val) :
-						!(max/rhs.val < lhs.val))
-				) ? safe_int{lhs.val * rhs.val} :
-				throw std::overflow_error{"overflow in multiplication"};
+						(min/lhs.val < rhs.val) :
+						(max/rhs.val < lhs.val))
+				) ? throw std::overflow_error{"overflow in multiplication"} :
+				safe_int{lhs.val * rhs.val};
 		}
 			
 		friend constexpr safe_int operator/(const safe_int& lhs, const safe_int& rhs){
@@ -241,11 +206,11 @@ class safe_int{
 		}
 		
 		template<typename = typename std::enable_if<is_signed>::type>
-		safe_int operator-() const{
-			return *this * safe_int{-1};
+		constexpr safe_int operator-() const{
+			return *this * safe_int{static_cast<base_type>(-1)};
 		}
 		template<typename = typename std::enable_if<!is_signed>::type, typename = void>
-		safe_int<typename impl::integer_type<bits, true>::type> operator-() const{
+		constexpr safe_int<typename impl::integer_type<bits, true>::type> operator-() const{
 			return *this * safe_int<typename impl::integer_type<bits, true>::type>{-1};
 		}
 		
@@ -258,7 +223,7 @@ class safe_int{
 		}
 		
 		constexpr explicit operator bool() const{
-			return val != 0;
+			return static_cast<bool>(val);
 		}
 		
 		constexpr bool operator!() const{
@@ -304,16 +269,20 @@ class safe_int{
 			val<<=other.val;
 			return *this;
 		}
-		template<typename Targ>
+		
+		template<typename Targ,
+			typename = typename std::enable_if<std::is_integral<Targ>::value>::type>
 		constexpr friend safe_int operator<<(const safe_int& lhs, const Targ& rhs){
 			return shift_check(lhs.val, rhs),  safe_int{lhs.val<<rhs};
 		}
-		template<typename Targ>
+		template<typename Targ,
+			typename = typename std::enable_if<std::is_integral<Targ>::value>::type>
 		safe_int& operator <<=(const Targ& other){
 			shift_check(val, other);
 			val<<=other;
 			return *this;
 		}
+		
 		
 		template<typename Targ>
 		constexpr friend safe_int operator>>(const safe_int& lhs, const safe_int<Targ>& rhs){
@@ -325,11 +294,14 @@ class safe_int{
 			val>>=other.val;
 			return *this;
 		}
-		template<typename Targ>
+		
+		template<typename Targ,
+			typename = typename std::enable_if<std::is_integral<Targ>::value>::type>
 		constexpr friend safe_int operator>>(const safe_int& lhs, const Targ& rhs){
 				return shift_check(lhs.val, rhs), safe_int{lhs.val>>rhs};
 		}
-		template<typename Targ>
+		template<typename Targ,
+			typename = typename std::enable_if<std::is_integral<Targ>::value>::type>
 		safe_int& operator >>=(const Targ& other){
 			shift_check(val, other);
 			val>>=other;
@@ -338,7 +310,7 @@ class safe_int{
 };
 
 template<typename Tlhs, typename Trhs>
-auto operator+(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
+constexpr auto operator+(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 -> safe_int<typename impl::shared_type<Tlhs, Trhs>::type>
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
@@ -349,7 +321,7 @@ auto operator+(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 
 
 template<typename Tlhs, typename Trhs>
-auto operator-(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
+constexpr auto operator-(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 -> safe_int<typename impl::shared_type<Tlhs, Trhs>::type>
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
@@ -359,7 +331,7 @@ auto operator-(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 }
 
 template<typename Tlhs, typename Trhs>
-auto operator*(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
+constexpr auto operator*(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 -> safe_int<typename impl::shared_type<Tlhs, Trhs>::type>
 {
 	typedef typename impl::shared_type<Tlhs, Trhs>::type return_base;
@@ -498,6 +470,18 @@ bool operator>=(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs){
 	return static_cast<common_base>(lhs.get_value()) >= static_cast<common_base>(rhs.get_value());
 }
 
+template<typename Tchar, typename T>
+std::basic_ostream<Tchar>& operator<<(std::basic_ostream<Tchar>& stream, const safe_int<T>& value){
+	return (stream << value.get_value());
+}
+
+template<typename Tchar, typename T>
+std::basic_istream<Tchar>& operator>>(std::basic_istream<Tchar>& stream, const safe_int<T>& value){
+	T tmp;
+	stream >> tmp;
+	value = safe_int<T>{tmp};
+	return stream;
+}
 
 namespace impl{
 
@@ -543,14 +527,10 @@ constexpr Ttarget_type checked_cast(const Tsource_type& src){
 			"checked cast is not to be used for narrowing casts");
 	static_assert(std::is_signed<Tsource_type>::value ? std::is_signed<Ttarget_type>::value : true,
 			"checked cast does not cast from signed to unsigned");
-	return convertable_check<
-		Tsource_type,
-		Ttarget_type,
-		std::is_signed<Ttarget_type>::value&&
+	return convertable_check<Tsource_type, Ttarget_type, 
+			std::is_signed<Ttarget_type>::value&&
 			(!std::is_signed<Tsource_type>::value)
-		>::check(src) ? 
-		static_cast<Ttarget_type>(src) 
-		: /* this will never be done:*/ throw std::exception{};
+		>::check(src) , static_cast<Ttarget_type>(src);
 }
 
 template<typename Tsigned, typename Tunsigned>
