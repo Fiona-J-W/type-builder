@@ -63,6 +63,7 @@ int main(){
 
 	assert(u08_0 > i08__127);
 	assert(u08_127 == i08_127);
+	assert(!(u08_128 == i08_127));
 	assert(u08_128 > i08_127);
 	assert(u08_128 != i08__1);
 	assert(i08__1 != u08_128);

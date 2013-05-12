@@ -363,39 +363,19 @@ constexpr auto operator%(safe_int<Tlhs> lhs, safe_int<Trhs> rhs)
 // comparisions:
 
 template<typename Tlhs, typename Trhs>
-bool operator==(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs){
+constexpr inline bool operator==(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs){
 	using common_base = typename impl::shared_type<Tlhs, Trhs>::type;
-	if(std::is_signed<common_base>::value){
-		if(!std::is_signed<Tlhs>::value){
-			if(!impl::in_range<common_base, Tlhs>(lhs.get_value())){
-				return false;
-			}
-		}
-		else if(!std::is_signed<Trhs>::value){
-			if(!impl::in_range<common_base, Trhs>(rhs.get_value())){
-				return false;
-			}
-		}
-	}
-	return static_cast<common_base>(lhs.get_value()) == static_cast<common_base>(rhs.get_value());
+	return (std::is_signed<common_base>::value ? (
+			(!std::is_signed<Tlhs>::value) && impl::in_range<common_base, Tlhs>(lhs.get_value())
+		):(
+			(!std::is_signed<Trhs>::value) && impl::in_range<common_base, Trhs>(rhs.get_value())
+		)) ? static_cast<common_base>(lhs.get_value()) == static_cast<common_base>(rhs.get_value()) 
+			: false;
 }
 
 template<typename Tlhs, typename Trhs>
-bool operator!=(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs){
-	using common_base = typename impl::shared_type<Tlhs, Trhs>::type;
-	if(std::is_signed<common_base>::value){
-		if(!std::is_signed<Tlhs>::value){
-			if(!impl::in_range<common_base, Tlhs>(lhs.get_value())){
-				return true;
-			}
-		}
-		else if(!std::is_signed<Trhs>::value){
-			if(!impl::in_range<common_base, Trhs>(rhs.get_value())){
-				return true;
-			}
-		}
-	}
-	return static_cast<common_base>(lhs.get_value()) != static_cast<common_base>(rhs.get_value());
+constexpr inline bool operator!=(const safe_int<Tlhs>& lhs, const safe_int<Trhs>& rhs){
+	return !(lhs == rhs);
 }
 
 template<typename Tlhs, typename Trhs>
@@ -509,7 +489,7 @@ struct shared_type{
 template<typename Tsource_type, typename Ttarget_type, bool Trequire_check>
 struct convertable_check{
 	constexpr static bool check(const Tsource_type& value){
-	return (value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max()))
+		return (value > static_cast<Tsource_type>(std::numeric_limits<Ttarget_type>::max()))
 			? throw std::overflow_error("conversion failure") 
 			: true;
 	}

@@ -241,6 +241,60 @@ static_assert(std::is_same<decltype(-std::declval<U16>()), I16>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U32>()), I32>::value,"");
 static_assert(std::is_same<decltype(-std::declval<U64>()), I64>::value,"");
 
+/////////////////////////////////////////////////////////////////////////////////////////
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<I08>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<I16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<U08>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<U16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I08>() == std::declval<U64>()), bool>::value, "");
+
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<I08>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<I16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<U08>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<U16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U08>() == std::declval<U64>()), bool>::value, "");
+
+
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<I16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<U16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I16>() == std::declval<U64>()), bool>::value, "");
+
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<I16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<U16>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U16>() == std::declval<U64>()), bool>::value, "");
+
+
+static_assert(std::is_same<decltype(std::declval<I32>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I32>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I32>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I32>() == std::declval<U64>()), bool>::value, "");
+
+static_assert(std::is_same<decltype(std::declval<U32>() == std::declval<I32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U32>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U32>() == std::declval<U32>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U32>() == std::declval<U64>()), bool>::value, "");
+
+
+static_assert(std::is_same<decltype(std::declval<I64>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<I64>() == std::declval<U64>()), bool>::value, "");
+
+static_assert(std::is_same<decltype(std::declval<U64>() == std::declval<I64>()), bool>::value, "");
+static_assert(std::is_same<decltype(std::declval<U64>() == std::declval<U64>()), bool>::value, "");
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 static_assert(!U08{} == true, "");
 static_assert(static_cast<bool>(U08{static_cast<std::uint8_t>(1)}) == true,"");
 static_assert(static_cast<bool>(U08{static_cast<std::uint8_t>(0)}) == false,"");
