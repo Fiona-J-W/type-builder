@@ -1,10 +1,9 @@
 #ifndef BASIC_NUMBER_STREAM_HPP
 #define BASIC_NUMBER_STREAM_HPP
 
-#include <ostream>
-#include <istream>
-
 #include "basic_number_core.hpp"
+
+#include <iosfwd>
 
 namespace type_builder{
 
