@@ -8,16 +8,6 @@
 #include "basic_number_flags.hpp"
 #include "policy_types.hpp"
 
-// to check for broken access-controll in gcc:
-#ifdef __GNUC__ 
-#	if __GNUC__ <= 4 && __GNUC_MINOR__ < 8
-#		ifndef __llvm__ // clang LIES to us, so we need to test for it too...
-//#			pragma message "compiling with broken gcc; the value in basic_number will be public"
-#			define BROKEN_GCC_VERSION
-#		endif
-#	endif
-#endif
-
 namespace type_builder{
 
 /**
@@ -34,18 +24,12 @@ class basic_number: protected Tbase<T, Tid> {
 	//put the private stuff to the begining because we will need it in 
 	// signatures:
 	
-#ifdef BROKEN_GCC_VERSION // needed for usage of decltype in signatures
-	public:
-#endif
 	/**
 	 * @brief The value of the number.
 	 * @note This member is made public for gcc in versions < 4.8 because of a compiler-bug.
 	 * Nevertheless it shall be considered undefined behaviour to access this variable directly.
 	 */
 	T value;
-#ifdef BROKEN_GCC_VERSION 
-	private:
-#endif
 	
 	/**
 	 * @brief Checks if a type is identical to *this.
