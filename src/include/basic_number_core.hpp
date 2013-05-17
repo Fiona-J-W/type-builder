@@ -35,40 +35,29 @@ class basic_number: protected Tbase<T, Tid> {
 	 * @brief Checks if a type is identical to *this.
 	 * @return true if it is, false otherwise.
 	 */
-	template<typename Targ> struct is_this{ 
-		enum : bool{
-			value = ( std::is_same<const basic_number&, const Targ&>::value 
-				|| std::is_same<basic_number&, Targ&>::value)
-		};
+	template<typename Targ> 
+	static constexpr bool is_this(){ 
+		return ( std::is_same<const basic_number&, const Targ&>::value 
+			|| std::is_same<basic_number&, Targ&>::value);
 	};
-	
-	static_assert(is_this<basic_number>::value, "is_this doesn't work.");
-	static_assert(!is_this<basic_number<T,basic_number>>::value, "is_this doesn't work.");
-	static_assert(!is_this<int>::value, "is_this doesn't work.");
 	
 	/**
 	 * @brief Checks whether a flag is set.
-	 * @param Tflag the flag to be checked
+	 * @param flag the flag to be checked
 	 * @return true if Tflag is set, false otherwise
 	 */
-	template<flag_t Tflag>
-	struct flag_set{
-		enum{
-			value = (Tflags & Tflag) != 0 ? true : false
-		};
-	};
+	static constexpr bool flag_set(flag_t flag){
+		return (Tflags & flag) != 0 ? true : false;
+	}
 	
 	/**
 	 * @brief Checks whether a flag is unset.
-	 * @param Tflag the flag to be checked
+	 * @param flag the flag to be checked
 	 * @return true if Tflag is unset, false otherwise
 	 */
-	template<flag_t Tflag>
-	struct flag_unset{
-		enum{
-			value = ! flag_set<Tflag>::value
-		};
-	};
+	static constexpr bool flag_unset(flag_t flag){
+		return !flag_set(flag);
+	}
 	
 	/**
 	 * @brief Provides the correct returntype for some functions.
@@ -77,7 +66,7 @@ class basic_number: protected Tbase<T, Tid> {
 	 */
 	template<typename T1, typename T2 = basic_number>
 	struct return_type{
-		using type = typename std::conditional<flag_set<ENABLE_NATIVE_TYPING>::value, T1, T2>::type;
+		using type = typename std::conditional<flag_set(ENABLE_NATIVE_TYPING), T1, T2>::type;
 	};
 	
 	// implementation for is_equivalent_basic_number
@@ -91,8 +80,8 @@ class basic_number: protected Tbase<T, Tid> {
 	template<typename Targ>
 	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
 		enum : bool{
-			value = flag_set<ENABLE_NATIVE_TYPING>::value ? true : 
-				static_cast<bool>(is_this<basic_number<Targ, Tid, Tflags, Tbase>>::value)
+			value = flag_set(ENABLE_NATIVE_TYPING) ? 
+				true : is_this<basic_number<Targ, Tid, Tflags, Tbase>>()
 		};
 	};
 	
@@ -102,25 +91,11 @@ class basic_number: protected Tbase<T, Tid> {
 	 * @return true if it is equivalent, false otherwise
 	 */
 	template<typename Targ>
-	struct is_equivalent_basic_number{
-		enum : bool{
-			value = _is_equivalent_basic_number<
-				typename std::remove_const<
-					typename std::remove_reference<Targ>::type
-				>::type&>::value
-		};
-	};
-	
-	static_assert(is_equivalent_basic_number<basic_number>::value, 
-		"is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<basic_number&>::value, 
-		"is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<const basic_number>::value, 
-		"is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<const basic_number&>::value, 
-		"is_equivalent_basic_number doesn't work.");
-	static_assert(is_equivalent_basic_number<basic_number&&>::value, 
-		"is_equivalent_basic_number doesn't work.");
+	static constexpr bool is_equivalent_basic_number(){
+		return _is_equivalent_basic_number<typename std::remove_const<
+				typename std::remove_reference<Targ>::type
+			>::type&>::value;
+	}
 	
 	public:
 		
@@ -130,31 +105,31 @@ class basic_number: protected Tbase<T, Tid> {
 		// if we do not want them:
 		
 		basic_number() : value(Tbase<T, Tid>::default_value()) {
-			static_assert(flag_unset<DISABLE_CONSTRUCTION>::value, 
+			static_assert(flag_unset(DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
-			static_assert(flag_set<ENABLE_DEFAULT_CONSTRUCTION>::value,
+			static_assert(flag_set(ENABLE_DEFAULT_CONSTRUCTION),
 					"default constructor not enabled for this type");
 		}
 		
 		basic_number(const basic_number& rhs): value{rhs.value}{
-			static_assert(flag_unset<DISABLE_CONSTRUCTION>::value, 
+			static_assert(flag_unset(DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 		}
 		
 		basic_number(basic_number&& rhs): value{std::move(rhs.value)}{
-			static_assert(flag_unset<DISABLE_CONSTRUCTION>::value, 
+			static_assert(flag_unset(DISABLE_CONSTRUCTION), 
 					"construction of this type is disabled");
 		}
 		
 		basic_number& operator=(const basic_number& rhs){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"invalid assignment to immutable type.");
 			value = rhs.value;
 			return *this;
 		}
 		
 		basic_number& operator=(basic_number&& rhs){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"invalid assignment to immutable type.");
 			value = std::move(rhs.value);
 			return *this;
@@ -167,9 +142,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// basic_number(basic_number)
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<std::is_same<Tother,basic_number>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_CONSTRUCTION>::value>::type
+			typename = typename std::enable_if<flag_unset(DISABLE_CONSTRUCTION)>::type
 		>
 		basic_number(const Tother& other): value(other.get_value()){}
 		
@@ -177,17 +152,17 @@ class basic_number: protected Tbase<T, Tid> {
 		template<
 			typename Tother,
 			typename = typename std::enable_if<std::is_same<Tother&, T&>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_CONSTRUCTION>::value>::type
+			typename = typename std::enable_if<flag_unset(DISABLE_CONSTRUCTION)>::type
 		>
 		explicit basic_number(const Tother& value): value(value){}
 		
 		// basic_number(Tother)
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<!std::is_same<Tother&, T&>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_CONSTRUCTION>::value>::type,
-			typename = typename std::enable_if<flag_unset<ENABLE_GENERAL_CONSTRUCTION>::value>::type
+			typename = typename std::enable_if<flag_unset(DISABLE_CONSTRUCTION)>::type,
+			typename = typename std::enable_if<flag_unset(ENABLE_GENERAL_CONSTRUCTION)>::type
 		>
 		explicit basic_number(const Tother& value): value(value){}
 		
@@ -196,9 +171,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this = basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<std::is_same<Tother,basic_number>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type
 		>
 		basic_number& operator=(const Tother& other){
 			this->value = other.value;
@@ -208,11 +183,11 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this = Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_LATE_ASSIGNEMENT>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_LATE_ASSIGNEMENT)>::type,
 			typename = typename std::enable_if<
 					std::is_same<T&, Tother&>::value
-					|| flag_set<ENABLE_GENERAL_CONSTRUCTION>::value
+					|| flag_set(ENABLE_GENERAL_CONSTRUCTION)
 				>::type,
 			typename = void // dummy to disable ambiguity with previus operator=()
 		>
@@ -225,8 +200,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this == basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_EQUALITY_CHECK>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_EQUALITY_CHECK)>::type
 		>
 		bool operator==(const Tother& other) const{
 			return value == other.get_value();
@@ -234,8 +209,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this == Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_EQUALITY_CHECK_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_EQUALITY_CHECK_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator==(const Tother& other) const{
@@ -244,8 +219,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this != basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_EQUALITY_CHECK>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_EQUALITY_CHECK)>::type
 		>
 		bool operator!=(const Tother& other) const{
 			return value != other.get_value();
@@ -253,8 +228,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this != Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_EQUALITY_CHECK_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_EQUALITY_CHECK_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator!=(const Tother& other) const{
@@ -263,8 +238,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this < basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_ORDERING_O_>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_ORDERING_O_)>::type
 		>
 		bool operator<(const Tother& other) const{
 			return value < other.get_value();
@@ -272,8 +247,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this < Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_ORDERING_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_ORDERING_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator<(const Tother& other) const{
@@ -282,8 +257,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this <= basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_ORDERING_O_>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_ORDERING_O_)>::type
 		>
 		bool operator<=(const Tother& other) const{
 			return value <= other.get_value();
@@ -291,8 +266,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this <= Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_ORDERING_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_ORDERING_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator<=(const Tother& other) const{
@@ -301,8 +276,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this > basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_ORDERING_O_>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_ORDERING_O_)>::type
 		>
 		bool operator>(const Tother& other) const{
 			return value > other.get_value();
@@ -310,8 +285,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this > Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_ORDERING_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_ORDERING_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator>(const Tother& other) const{
@@ -321,8 +296,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this >= basic_number
 		template <typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_ORDERING_O_>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_ORDERING_O_)>::type
 		>
 		bool operator>=(const Tother& other) const{
 			return value >= other.get_value();
@@ -330,8 +305,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this >= Tother
 		template <typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_ORDERING_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_ORDERING_O_)>::type,
 			typename = void // dummy
 		>
 		bool operator>=(const Tother& other) const{
@@ -339,46 +314,46 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number& operator++(){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<ENABLE_INC_DEC>::value,
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			++value;
 			return *this;
 		}
 		
 		basic_number operator++(int){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<ENABLE_INC_DEC>::value,
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			return basic_number(value++);
 		}
 		
 		basic_number& operator--(){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<ENABLE_INC_DEC>::value,
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			--value;
 			return *this;
 		}
 		
 		basic_number operator--(int){
-			static_assert(flag_unset<DISABLE_MUTABILITY>::value,
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<ENABLE_INC_DEC>::value,
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			return basic_number(value--);
 		}
 		
 		// unary -
 		template<
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_PLUS_MINUS)>::type
 		>
 		basic_number operator-(){
 			return basic_number{ -value };
@@ -388,8 +363,8 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this + basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_PLUS_MINUS)>::type
 		>
 		auto operator+(const Tother& other) const ->
 		typename return_type<basic_number<decltype(value + other.get_value()), Tid, Tflags,Tbase>>::type
@@ -403,8 +378,8 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this + Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_GENERAL_PLUS_MINUS>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_GENERAL_PLUS_MINUS)>::type,
 			typename = void // dummy
 		>
 		auto operator+(const Tother& other) const ->
@@ -419,9 +394,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this += basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_PLUS_MINUS)>::type
 		>
 		basic_number& operator+=(const Tother& other){
 			value += other.get_value();
@@ -431,9 +406,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this += Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_GENERAL_PLUS_MINUS>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_GENERAL_PLUS_MINUS)>::type,
 			typename = void // dummy
 		>
 		basic_number& operator+=(const Tother& other){
@@ -444,8 +419,8 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this - basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_PLUS_MINUS)>::type
 		>
 		auto operator-(const Tother& other) const ->
 		typename return_type<basic_number<decltype(value - other.get_value()), Tid, Tflags,Tbase>>::type
@@ -459,8 +434,8 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this - Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_GENERAL_PLUS_MINUS>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_GENERAL_PLUS_MINUS)>::type,
 			typename = void // dummy
 		>
 		auto operator-(const Tother& other) const ->
@@ -475,9 +450,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this -= basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_PLUS_MINUS>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_PLUS_MINUS)>::type
 		>
 		basic_number& operator-=(const Tother& other){
 			value -= other.get_value();
@@ -487,9 +462,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this -= Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_GENERAL_PLUS_MINUS>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_GENERAL_PLUS_MINUS)>::type,
 			typename = void // dummy
 		>
 		basic_number& operator-=(const Tother& other){
@@ -499,8 +474,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this * basic_number
 		template<typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_MULTIPLICATION>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_MULTIPLICATION)>::type
 		>
 		auto operator*(const Tother& other) const ->
 		typename return_type<basic_number<decltype(value * other.get_value()), Tid, Tflags, Tbase>>::type
@@ -513,14 +488,14 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this * Tother
 		template<typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<
-				flag_set<ENABLE_GENERAL_MULTIPLICATION>::value
+				flag_set(ENABLE_GENERAL_MULTIPLICATION)
 				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_FLOAT_MULTIPLICATION_O_>::value)
+					&& flag_set(ENABLE_FLOAT_MULTIPLICATION_O_))
 				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_INTEGER_MULTIPLICATION>::value)
-				|| (flag_set<ENABLE_BASE_MULTIPLICATION_O_>::value
+					&& flag_set(ENABLE_INTEGER_MULTIPLICATION))
+				|| (flag_set(ENABLE_BASE_MULTIPLICATION_O_)
 					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
 					&& std::is_floating_point<T>::value)
 			>::type,
@@ -538,9 +513,9 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this *= basic_number
 		template<
 			typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_MULTIPLICATION>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_MULTIPLICATION)>::type
 		>
 		basic_number& operator*=(const Tother& other){
 			value *= other.get_value();
@@ -550,15 +525,15 @@ class basic_number: protected Tbase<T, Tid> {
 		// *this *= Tother
 		template<
 			typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
 			typename = typename std::enable_if<
-				flag_set<ENABLE_GENERAL_MULTIPLICATION>::value
+				flag_set(ENABLE_GENERAL_MULTIPLICATION)
 				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_FLOAT_MULTIPLICATION_O_>::value)
+					&& flag_set(ENABLE_FLOAT_MULTIPLICATION_O_))
 				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_INTEGER_MULTIPLICATION>::value)
-				|| (flag_set<ENABLE_BASE_MULTIPLICATION_O_>::value
+					&& flag_set(ENABLE_INTEGER_MULTIPLICATION))
+				|| (flag_set(ENABLE_BASE_MULTIPLICATION_O_)
 					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
 					&& std::is_floating_point<T>::value)
 			>::type,
@@ -572,8 +547,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this / basic_number
 		template<typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_DIVISION>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_DIVISION)>::type
 		>
 		auto operator/(const Tother& other) const ->
 		typename return_type<basic_number<decltype(value / other.get_value()), Tid, Tflags, Tbase>>::type
@@ -586,14 +561,14 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this / Tother
 		template<typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<
-				flag_set<ENABLE_GENERAL_DIVISION>::value
+				flag_set(ENABLE_GENERAL_DIVISION)
 				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_FLOAT_DIVISION_O_>::value)
+					&& flag_set(ENABLE_FLOAT_DIVISION_O_))
 				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_INTEGER_DIVISION>::value)
-				|| (flag_set<ENABLE_BASE_DIVISION_O_>::value
+					&& flag_set(ENABLE_INTEGER_DIVISION))
+				|| (flag_set(ENABLE_BASE_DIVISION_O_)
 					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
 					&& std::is_floating_point<T>::value)
 			>::type,
@@ -610,9 +585,9 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this /= basic_number
 		template<typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_DIVISION>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_DIVISION)>::type
 		>
 		basic_number& operator/=(const Tother& other){
 			value /= other.get_value();
@@ -621,15 +596,15 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this /= Tother
 		template<typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
 			typename = typename std::enable_if<
-				flag_set<ENABLE_GENERAL_DIVISION>::value
+				flag_set(ENABLE_GENERAL_DIVISION)
 				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_FLOAT_DIVISION_O_>::value)
+					&& flag_set(ENABLE_FLOAT_DIVISION_O_))
 				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
-					&& flag_set<ENABLE_INTEGER_DIVISION>::value)
-				|| (flag_set<ENABLE_BASE_DIVISION_O_>::value
+					&& flag_set(ENABLE_INTEGER_DIVISION))
+				|| (flag_set(ENABLE_BASE_DIVISION_O_)
 					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
 					&& std::is_floating_point<T>::value)
 			>::type,
@@ -642,8 +617,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this % basic_number
 		template<typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_MODULO>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_MODULO)>::type
 		>
 		basic_number operator%(const Tother& other) const{
 			return basic_number(value % other.get_value());
@@ -651,8 +626,8 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this % Tother
 		template<typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_MODULO_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_MODULO_O_)>::type,
 			typename = void // dummy
 		>
 		basic_number operator%(const Tother& other) const{
@@ -661,9 +636,9 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this %= basic_number
 		template<typename Tother,
-			typename = typename std::enable_if<is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_SPECIFIC_MODULO>::value>::type
+			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_SPECIFIC_MODULO)>::type
 		>
 		basic_number& operator%=(const Tother& other){
 			value %= other.get_value();
@@ -672,9 +647,9 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		// *this %= Tother
 		template<typename Tother,
-			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>::value>::type,
-			typename = typename std::enable_if<flag_unset<DISABLE_MUTABILITY>::value>::type,
-			typename = typename std::enable_if<flag_set<ENABLE_MODULO_O_>::value>::type,
+			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
+			typename = typename std::enable_if<flag_unset(DISABLE_MUTABILITY)>::type,
+			typename = typename std::enable_if<flag_set(ENABLE_MODULO_O_)>::type,
 			typename = void // dummy
 		>
 		basic_number& operator%=(const Tother& other){
