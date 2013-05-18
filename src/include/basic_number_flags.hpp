@@ -46,8 +46,7 @@ enum: flag_t{
 	
 	ENABLE_NATIVE_TYPING = flag_t{1} << 30,
 	
-	DISABLE_CONSTRUCTION = flag_t{1} << 60,
-	DISABLE_MUTABILITY = flag_t{1} << 61
+	DISABLE_MUTABILITY = flag_t{1} << 60
 };
 
 /**

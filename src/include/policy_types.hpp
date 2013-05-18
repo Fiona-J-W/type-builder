@@ -24,26 +24,6 @@ struct empty_base{
 	
 };
 
-/**
- * @brief This class is an alternative to empty_base that provides a virtual destructor to enable further inheritance.
- * 
- * Note that this might still not be enough for many design-patterns; provide your own base if you need it.
- */
-template <typename T, typename Tid>
-struct virtual_empty_base{
-	
-	static constexpr T default_value(){
-		return T{};
-	}
-	
-	enum: bool{
-		USE_DEFAULT_STREAM_IN = true,
-		USE_DEFAULT_STREAM_OUT = true
-	};
-	
-	virtual ~virtual_empty_base() = 0;
-};
-
 } //namespace type_builder
 
 #endif
