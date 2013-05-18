@@ -143,7 +143,7 @@ class-template-instance; they are designed to be used as bit-masks and there are
 The values of the constants are undefined behaviour and may change between versions without any further notion. 
 *Don't rely on them*!
 
-The existing flags are (this might be slightl outdated but not to such a degree that it would be unusable):
+The existing flags are (this might be slightly outdated but not to such a degree that it would be unusable):
 
 * ENABLE\_GENERAL\_CONSTRUCTION = Enables the construction from any type.
 * ENABLE\_DEFAULT\_CONSTRUCTION = Enables the default-construction.
