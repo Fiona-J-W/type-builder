@@ -5,8 +5,8 @@
 #include "physical.hpp"
 #include <type_traits>
 
-using meter_per_second = decltype(meter{1.0} / second{1.0});
-using square_meter = decltype(meter{1.0} * meter{1.0});
+using meter_per_second = decltype(std::declval<meter>() / std::declval<second>());
+using square_meter = decltype(std::declval<meter>() * std::declval<meter>());
 
 meter_per_second operator"" _mps(long double val){
 	return meter_per_second{val};
