@@ -205,11 +205,6 @@ class safe_int{
 			return *this;
 		}
 		
-		template<typename = typename std::enable_if<is_signed>::type>
-		constexpr safe_int operator-() const{
-			return *this * safe_int{static_cast<base_type>(-1)};
-		}
-		template<typename = typename std::enable_if<!is_signed>::type, typename = void>
 		constexpr safe_int<typename impl::integer_type<bits, true>::type> operator-() const{
 			return *this * safe_int<typename impl::integer_type<bits, true>::type>{-1};
 		}

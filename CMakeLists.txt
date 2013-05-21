@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 #we need C++11:
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
 
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Weffc++" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic" )
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
 	message("creating Debug-Version")
