@@ -41,12 +41,14 @@ class basic_number: protected Tbase<T, Tid> {
 			|| std::is_same<basic_number&, Targ&>::value);
 	}
 	
+	// the template-parameters in the following function
+	
 	/**
 	 * @brief Checks whether a flag is set.
 	 * @param flag the flag to be checked
 	 * @return true if Tflag is set, false otherwise
 	 */
-	template<typename Dummy>
+	template<typename = void>
 	static constexpr bool flag_set(flag_t flag){
 		return (Tflags & flag) != 0 ? true : false;
 	}
@@ -56,9 +58,9 @@ class basic_number: protected Tbase<T, Tid> {
 	 * @param flag the flag to be checked
 	 * @return true if Tflag is unset, false otherwise
 	 */
-	template<typename Dummy>
+	template<typename = void>
 	static constexpr bool flag_unset(flag_t flag){
-		return !flag_set<Dummy>(flag);
+		return !flag_set(flag);
 	}
 	
 	/**
@@ -75,7 +77,7 @@ class basic_number: protected Tbase<T, Tid> {
 	template<typename Targ>
 	struct _is_equivalent_basic_number{
 		enum : bool{
-			value = 0
+			value = false
 		};
 	};
 	// dito:
@@ -661,7 +663,6 @@ class basic_number: protected Tbase<T, Tid> {
 		
 		/**
 		 * @brief Sets the value of 'this'. 
-		 * @note This method is mainly provided for use by Tbase.
 		 * @param value the new value
 		 */
 		void set_value(T value){
