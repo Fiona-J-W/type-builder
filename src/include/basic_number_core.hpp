@@ -26,8 +26,6 @@ class basic_number: protected Tbase<T, Tid> {
 	
 	/**
 	 * @brief The value of the number.
-	 * @note This member is made public for gcc in versions < 4.8 because of a compiler-bug.
-	 * Nevertheless it shall be considered undefined behaviour to access this variable directly.
 	 */
 	T value;
 	
@@ -73,21 +71,13 @@ class basic_number: protected Tbase<T, Tid> {
 		using type = typename std::conditional<flag_set<void>(ENABLE_NATIVE_TYPING), T1, T2>::type;
 	};
 	
-	// implementation for is_equivalent_basic_number
 	template<typename Targ>
-	struct _is_equivalent_basic_number{
-		enum : bool{
-			value = false
-		};
-	};
-	// dito:
+	struct _is_equivalent_basic_number : std::false_type {};
+	
 	template<typename Targ>
-	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&>{
-		enum : bool{
-			value = flag_set<void>(ENABLE_NATIVE_TYPING) ? 
-				true : is_this<basic_number<Targ, Tid, Tflags, Tbase>>()
-		};
-	};
+	struct _is_equivalent_basic_number<basic_number<Targ, Tid, Tflags, Tbase>&> :
+		std::integral_constant<bool, flag_set(ENABLE_NATIVE_TYPING) ?
+			true : is_this<basic_number<Targ, Tid, Tflags, Tbase>>() > {};
 	
 	/**
 	 * @brief Checks whether a type is semanticly equivalent to *this.
@@ -98,7 +88,7 @@ class basic_number: protected Tbase<T, Tid> {
 	static constexpr bool is_equivalent_basic_number(){
 		return _is_equivalent_basic_number<typename std::remove_const<
 				typename std::remove_reference<Targ>::type
-			>::type&>::value;
+			>::type&>{};
 	}
 	
 	public:
@@ -671,19 +661,13 @@ class basic_number: protected Tbase<T, Tid> {
 };
 
 namespace impl{
-// these templates check whether a type is an instance of basic_number:
+
 template <typename T>
-struct is_basic_number{
-	enum {
-		value = false
-	};
-};
+struct is_basic_number : std::false_type {};
+
 template <typename T, class Tid, flag_t Tflags, template<typename, class> class Tbase>
-struct is_basic_number<basic_number<T, Tid, Tflags, Tbase>>{
-	enum {
-		value = true
-	};
-};
+struct is_basic_number<basic_number<T, Tid, Tflags, Tbase>> : std::true_type {};
+
 }
 
 template<typename T>
