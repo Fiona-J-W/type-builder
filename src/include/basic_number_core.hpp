@@ -35,8 +35,8 @@ class basic_number: protected Tbase<T, Tid> {
 	 */
 	template<typename Targ> 
 	static constexpr bool is_this(){ 
-		return ( std::is_same<const basic_number&, const Targ&>::value 
-			|| std::is_same<basic_number&, Targ&>::value);
+		return ( std::is_same<const basic_number&, const Targ&>{} 
+			|| std::is_same<basic_number&, Targ&>{});
 	}
 	
 	// the template-parameters in the following function
@@ -129,14 +129,14 @@ class basic_number: protected Tbase<T, Tid> {
 		template<
 			typename Tother,
 			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
-			typename = typename std::enable_if<std::is_same<Tother,basic_number>::value>::type
+			typename = typename std::enable_if<std::is_same<Tother,basic_number>{}>::type
 		>
 		basic_number(const Tother& other): value(other.get_value()){}
 		
 		// basic_number(T)
 		template<
 			typename Tother,
-			typename = typename std::enable_if<std::is_same<Tother&, T&>::value>::type
+			typename = typename std::enable_if<std::is_same<Tother&, T&>{}>::type
 		>
 		explicit basic_number(const Tother& value): value(value){}
 		
@@ -144,7 +144,7 @@ class basic_number: protected Tbase<T, Tid> {
 		template<
 			typename Tother,
 			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
-			typename = typename std::enable_if<!std::is_same<Tother&, T&>::value>::type,
+			typename = typename std::enable_if<!std::is_same<Tother&, T&>{}>::type,
 			typename = typename std::enable_if<flag_unset<Tother>(ENABLE_GENERAL_CONSTRUCTION)>::type
 		>
 		explicit basic_number(const Tother& value): value(value){}
@@ -155,7 +155,7 @@ class basic_number: protected Tbase<T, Tid> {
 		template<
 			typename Tother,
 			typename = typename std::enable_if<is_equivalent_basic_number<Tother>()>::type,
-			typename = typename std::enable_if<std::is_same<Tother,basic_number>::value>::type,
+			typename = typename std::enable_if<std::is_same<Tother,basic_number>{}>::type,
 			typename = typename std::enable_if<flag_unset<Tother>(DISABLE_MUTABILITY)>::type
 		>
 		basic_number& operator=(const Tother& other){
@@ -169,7 +169,7 @@ class basic_number: protected Tbase<T, Tid> {
 			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<flag_set<Tother>(ENABLE_LATE_ASSIGNEMENT)>::type,
 			typename = typename std::enable_if<
-					std::is_same<T&, Tother&>::value
+					std::is_same<T&, Tother&>{}
 					|| flag_set<Tother>(ENABLE_GENERAL_CONSTRUCTION)
 				>::type,
 			typename = void
@@ -473,13 +473,13 @@ class basic_number: protected Tbase<T, Tid> {
 			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<
 				flag_set<Tother>(ENABLE_GENERAL_MULTIPLICATION)
-				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_FLOAT_MULTIPLICATION_O_))
-				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_INTEGER_MULTIPLICATION))
 				|| (flag_set<Tother>(ENABLE_BASE_MULTIPLICATION_O_)
-					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
-					&& std::is_floating_point<T>::value)
+					&& std::is_floating_point<typename std::remove_reference<Tother>::type>{}
+					&& std::is_floating_point<T>{})
 			>::type,
 			typename = void
 		>
@@ -511,13 +511,13 @@ class basic_number: protected Tbase<T, Tid> {
 			typename = typename std::enable_if<flag_unset<Tother>(DISABLE_MUTABILITY)>::type,
 			typename = typename std::enable_if<
 				flag_set<Tother>(ENABLE_GENERAL_MULTIPLICATION)
-				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_FLOAT_MULTIPLICATION_O_))
-				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_INTEGER_MULTIPLICATION))
 				|| (flag_set<Tother>(ENABLE_BASE_MULTIPLICATION_O_)
-					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
-					&& std::is_floating_point<T>::value)
+					&& std::is_floating_point<typename std::remove_reference<Tother>::type>{}
+					&& std::is_floating_point<T>{})
 			>::type,
 			typename = void
 		>
@@ -546,13 +546,13 @@ class basic_number: protected Tbase<T, Tid> {
 			typename = typename std::enable_if<!is_equivalent_basic_number<Tother>()>::type,
 			typename = typename std::enable_if<
 				flag_set<Tother>(ENABLE_GENERAL_DIVISION)
-				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_FLOAT_DIVISION_O_))
-				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_INTEGER_DIVISION))
 				|| (flag_set<Tother>(ENABLE_BASE_DIVISION_O_)
-					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
-					&& std::is_floating_point<T>::value)
+					&& std::is_floating_point<typename std::remove_reference<Tother>::type>{}
+					&& std::is_floating_point<T>{})
 			>::type,
 			typename = void
 		>
@@ -582,13 +582,13 @@ class basic_number: protected Tbase<T, Tid> {
 			typename = typename std::enable_if<flag_unset<Tother>(DISABLE_MUTABILITY)>::type,
 			typename = typename std::enable_if<
 				flag_set<Tother>(ENABLE_GENERAL_DIVISION)
-				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_floating_point<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_FLOAT_DIVISION_O_))
-				|| (std::is_integral<typename std::remove_reference<Tother>::type>::value 
+				|| (std::is_integral<typename std::remove_reference<Tother>::type>{} 
 					&& flag_set<Tother>(ENABLE_INTEGER_DIVISION))
 				|| (flag_set<Tother>(ENABLE_BASE_DIVISION_O_)
-					&& std::is_floating_point<typename std::remove_reference<Tother>::type>::value
-					&& std::is_floating_point<T>::value)
+					&& std::is_floating_point<typename std::remove_reference<Tother>::type>{}
+					&& std::is_floating_point<T>{})
 			>::type,
 			typename = void
 		>
@@ -672,7 +672,7 @@ struct is_basic_number<basic_number<T, Tid, Tflags, Tbase>> : std::true_type {};
 
 template<typename T>
 constexpr bool is_basic_number(){
-	return impl::is_basic_number<T>::value;
+	return impl::is_basic_number<T>{};
 }
 
 // we asume * and + to be commutative, so:
