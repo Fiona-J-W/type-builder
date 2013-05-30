@@ -13,7 +13,7 @@ namespace type_builder{
 /**
  * @brief A template for a number-class.
  */
-// note that the operators are not documented with doxygen, 
+// note that the operators are not documented with doxygen
 // because they behave pretty much as you would expect anyway.
 template<
 	typename T,
@@ -45,16 +45,18 @@ class basic_number: protected Tbase<T, Tid> {
 	 * @brief Checks whether a flag is set.
 	 * @param flag the flag to be checked
 	 * @return true if Tflag is set, false otherwise
+	 * @note the template-parameter is needed as a workaround for gcc-behaviour
 	 */
 	template<typename = void>
 	static constexpr bool flag_set(flag_t flag){
-		return (Tflags & flag) != 0 ? true : false;
+		return Tflags & flag;
 	}
 	
 	/**
 	 * @brief Checks whether a flag is unset.
 	 * @param flag the flag to be checked
 	 * @return true if Tflag is unset, false otherwise
+	 * @note the template-parameter is needed as a workaround for gcc-behaviour
 	 */
 	template<typename = void>
 	static constexpr bool flag_unset(flag_t flag){
@@ -68,7 +70,7 @@ class basic_number: protected Tbase<T, Tid> {
 	 */
 	template<typename T1, typename T2 = basic_number>
 	struct return_type{
-		using type = typename std::conditional<flag_set<void>(ENABLE_NATIVE_TYPING), T1, T2>::type;
+		using type = typename std::conditional<flag_set(ENABLE_NATIVE_TYPING), T1, T2>::type;
 	};
 	
 	template<typename Targ>
@@ -99,7 +101,7 @@ class basic_number: protected Tbase<T, Tid> {
 		// if we do not want them:
 		
 		basic_number() : value(Tbase<T, Tid>::default_value()) {
-			static_assert(flag_set<void>(ENABLE_DEFAULT_CONSTRUCTION),
+			static_assert(flag_set(ENABLE_DEFAULT_CONSTRUCTION),
 					"default constructor not enabled for this type");
 		}
 		
@@ -108,14 +110,14 @@ class basic_number: protected Tbase<T, Tid> {
 		basic_number(basic_number&& rhs) = default;
 		
 		basic_number& operator=(const basic_number& rhs){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"invalid assignment to immutable type.");
 			value = rhs.value;
 			return *this;
 		}
 		
 		basic_number& operator=(basic_number&& rhs){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"invalid assignment to immutable type.");
 			value = std::move(rhs.value);
 			return *this;
@@ -297,46 +299,46 @@ class basic_number: protected Tbase<T, Tid> {
 		}
 		
 		basic_number& operator++(){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<void>(ENABLE_INC_DEC),
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			++value;
 			return *this;
 		}
 		
 		basic_number operator++(int){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<void>(ENABLE_INC_DEC),
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			return basic_number(value++);
 		}
 		
 		basic_number& operator--(){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<void>(ENABLE_INC_DEC),
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			--value;
 			return *this;
 		}
 		
 		basic_number operator--(int){
-			static_assert(flag_unset<void>(DISABLE_MUTABILITY),
+			static_assert(flag_unset(DISABLE_MUTABILITY),
 					"You cannot change the value of an instance "
 					"of an immutable type");
-			static_assert(flag_set<void>(ENABLE_INC_DEC),
+			static_assert(flag_set(ENABLE_INC_DEC),
 					"increment not enabled for this number-type");
 			return basic_number(value--);
 		}
 		
 		// unary -
 		basic_number operator-(){
-			static_assert(flag_set<void>(ENABLE_SPECIFIC_PLUS_MINUS), 
+			static_assert(flag_set(ENABLE_SPECIFIC_PLUS_MINUS), 
 					"unary minus must be enabled by ENABLE_SPECIFIC_PLUS_MINUS");
 			return basic_number{ -value };
 		}
