@@ -120,7 +120,7 @@ std::enable\_if and static asserts to check whether the called function is enabl
 
 ####Template-arguments
 
-The function takes three template-arguments:
+The classtemplate takes three template-arguments:
 
 1. T = the underlying type. This may be any type that overloads the arithmetic-operators like the built-in 
 	number-types do, but the usage of the built-in ones is usually a good choice.
@@ -130,8 +130,8 @@ The function takes three template-arguments:
 	type and using it only for this purpose (see example above).
 3. Tflags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
 	description can be found in the description of the settings-enum below.
-4. Tbase = The base type of the basic\_number. Protected Inheritance is used to derive from it and it is used to
-	set the details for stream-IO.
+4. Tbase = The template-base of the base-type of the basic\_number. Protected Inheritance is used to derive from its 
+	instanciation and it is used to set the details for stream-IO.
 
 ###the settings-enum
 
