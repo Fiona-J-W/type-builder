@@ -95,7 +95,7 @@ int main(){
 ```
 
 Current state
-=============
+-------------
 
 The library is currently in alpha-state without strong guarantees that the API won't change. Especially the 
 interactions of the basic types with other types should be considered as something that might change in the
@@ -105,13 +105,12 @@ Nevertheless the performance is already identical to using the build-in types if
 enabled optimization.
 
 Library description
-===================
+-------------------
 
 All types and constants are part of the namespace type_builder. You shouldn't do much about this because the 
 usage-recommendation is anyway to use some kind of typedef, like in the code above.
 
-basic\_number
--------------
+###basic\_number
 
 This template-class is used to create distinct number type that serves a specific purpose. You can enable and disable
 several operators in different contexts (e.g. enable addition with other instances and multiplication with integral
@@ -119,7 +118,7 @@ numbers but not with floating point). All arithmetic (that excludes bit-operator
 are disabled by default. The implementations are just small wrappers around the implementation of the basetype with
 std::enable\_if and static asserts to check whether the called function is enabled for the type in question.
 
-###Template-arguments
+####Template-arguments
 
 The function takes three template-arguments:
 
@@ -134,8 +133,7 @@ The function takes three template-arguments:
 4. Tbase = The base type of the basic\_number. Protected Inheritance is used to derive from it and it is used to
 	set the details for stream-IO.
 
-the settings-enum
------------------
+###the settings-enum
 
 This enum contains several constants that controll the operations that are possible to use on a 
 class-template-instance; they are designed to be used as bit-masks and there are already several combined flags.
