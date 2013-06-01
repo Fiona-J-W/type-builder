@@ -31,6 +31,8 @@ int main(){
 	//meter_per_second s1{10.0};
 	auto s1 = 10.0_mps;
 	auto s2 = l/t;
+	static_assert(std::is_same<decltype(s1), decltype(s2)>{}, 
+			"these are meters per second");
 	square_meter area{100};
 	std::cout << "speed: " << s1 << std::endl;
 	std::cout << "distance: " << s2*t << std::endl;

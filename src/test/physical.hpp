@@ -35,19 +35,19 @@ public:
 	template<typename Tchar>
 	static std::basic_string<Tchar> get_unit_str(){
 		static_assert(std::is_same<Tchar, char>::value, 
-				"cannot print physical with another format than utf8");
+				"priting is done with utf8");
 		using std::to_string;
 		
 		std::basic_string<Tchar> returnstring;
-		using p_int_str = std::pair<const int, const std::string>;
+		using pair = std::pair<const int, const std::string>;
 		for(const auto& unit: {
-				p_int_str{Tid::m,"m"},
-				p_int_str{Tid::kg,"kg"},
-				p_int_str{Tid::s,"s"},
-				p_int_str{Tid::A,"A"},
-				p_int_str{Tid::K,"K"},
-				p_int_str{Tid::mol,"mol"},
-				p_int_str{Tid::cd,"cd"}
+				pair{Tid::m,"m"},
+				pair{Tid::kg,"kg"},
+				pair{Tid::s,"s"},
+				pair{Tid::A,"A"},
+				pair{Tid::K,"K"},
+				pair{Tid::mol,"mol"},
+				pair{Tid::cd,"cd"}
 		}){	
 			if(unit.first == 1){
 				returnstring += unit.second;
