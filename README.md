@@ -69,10 +69,10 @@ This is the part where Type Builder will help you a lot. The code can be reduced
 ```c++
 
 // completly distinct types (enforced by the second template-parameter)
-struct x_coord_id_t{};
-using x_coord = type_builder::basic_number<int, x_coord_id_t, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
-struct y_coord_id_t{};
-using y_coord = type_builder::basic_number<int, y_coord_id_t, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
+struct x_coord_id{};
+using x_coord = type_builder::basic_number<int, x_coord_id, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
+struct y_coord_id{};
+using y_coord = type_builder::basic_number<int, y_coord_id, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
 
 struct point{
 	point(x_coord x, y_coord y): x(x), y(y) {}
