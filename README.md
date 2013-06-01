@@ -108,7 +108,7 @@ Library description
 ===================
 
 All types and constants are part of the namespace type_builder. You shouldn't do much about this because the 
-usage-recommendation is anyway to use a “using”, like in the code above.
+usage-recommendation is anyway to use some kind of typedef, like in the code above.
 
 basic\_number
 -------------
@@ -131,8 +131,8 @@ The function takes three template-arguments:
 	type and using it only for this purpose (see example above).
 3. Tflags = This argument is a bitmask that will controll which operations are permitted for your type. A detailed
 	description can be found in the description of the settings-enum below.
-4. Tbase = The base type of the basic\_number. This defaults to a do-nothing base but might be changed to enable some 
-	more advanced usages.
+4. Tbase = The base type of the basic\_number. Protected Inheritance is used to derive from it and it is used to
+	set the details for stream-IO.
 
 the settings-enum
 -----------------
