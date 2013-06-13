@@ -95,33 +95,27 @@ public:
 
 
 template<int Tm, int Tkg, int Ts, int TA, int TK, int Tmol, int Tcd, typename T>
-using physical = type_builder::basic_number<T, physical_t<Tm, Tkg, Ts, TA, TK, Tmol, Tcd>, 
-	type_builder::ENABLE_SPECIFIC_PLUS_MINUS | type_builder::ENABLE_BASE_MULT_DIV 
+using physical = type_builder::basic_number<T, physical_t<Tm, Tkg, Ts, TA, TK, Tmol, Tcd>,
+	type_builder::ENABLE_SPECIFIC_PLUS_MINUS | type_builder::ENABLE_BASE_MULT_DIV
 	| type_builder::ENABLE_SPECIFIC_ORDERING,
 	physical_base>;
 
-template<int Tm1, int Tkg1, int Ts1, int TA1, int TK1, int Tmol1, int Tcd1, typename T1, 
+template<int Tm1, int Tkg1, int Ts1, int TA1, int TK1, int Tmol1, int Tcd1, typename T1,
 	int Tm2, int Tkg2, int Ts2, int TA2, int TK2, int Tmol2, int Tcd2, typename T2>
-auto operator*(
-	const physical<Tm1,Tkg1, Ts1, TA1, TK1, Tmol1, Tcd1, T1>& a, 
-	const physical<Tm2,Tkg2, Ts2, TA2, TK2, Tmol2, Tcd2, T2>& b)->
-		physical<Tm1+Tm2, Tkg1+Tkg2, Ts1+Ts2, TA1+TA2, TK1+TK2, 
-			Tmol1+Tmol2, Tcd1+Tcd2, decltype(T1{}*T2{})>{
-	return physical<Tm1+Tm2, Tkg1+Tkg2, Ts1+Ts2, TA1+TA2, TK1+TK2, 
-			Tmol1+Tmol2, Tcd1+Tcd2, decltype(T1{}*T2{})>{
-		a.get_value() * b.get_value()};
+physical<Tm1+Tm2, Tkg1+Tkg2, Ts1+Ts2, TA1+TA2, TK1+TK2, Tmol1+Tmol2, Tcd1+Tcd2,
+	decltype(std::declval<T1>()*std::declval<T2>())>
+operator*(const physical<Tm1,Tkg1, Ts1, TA1, TK1, Tmol1, Tcd1, T1>& a,
+		const physical<Tm2,Tkg2, Ts2, TA2, TK2, Tmol2, Tcd2, T2>& b){
+	return decltype(a*b){a.get_value() * b.get_value()};
 }
 
 template<int Tm1, int Tkg1, int Ts1, int TA1, int TK1, int Tmol1, int Tcd1, typename T1,
 	int Tm2, int Tkg2, int Ts2, int TA2, int TK2, int Tmol2, int Tcd2, typename T2>
-auto operator/(
-	const physical<Tm1,Tkg1, Ts1, TA1, TK1, Tmol1, Tcd1, T1>& a, 
-	const physical<Tm2,Tkg2, Ts2, TA2, TK2, Tmol2, Tcd2, T2>& b)->
-		physical<Tm1-Tm2, Tkg1-Tkg2, Ts1-Ts2, TA1-TA2, TK1-TK2, 
-			Tmol1-Tmol2, Tcd1-Tcd2, decltype(T1{}/T2{})>{
-	return physical<Tm1-Tm2, Tkg1-Tkg2, Ts1-Ts2, TA1-TA2, TK1-TK2, 
-			Tmol1-Tmol2, Tcd1-Tcd2, decltype(T1{}/T2{})>{
-		a.get_value() / b.get_value()};
+physical<Tm1-Tm2, Tkg1-Tkg2, Ts1-Ts2, TA1-TA2, TK1-TK2, Tmol1-Tmol2, Tcd1-Tcd2,
+	decltype(std::declval<T1>()/std::declval<T2>())> 
+operator/(const physical<Tm1,Tkg1, Ts1, TA1, TK1, Tmol1, Tcd1, T1>& a,
+		const physical<Tm2,Tkg2, Ts2, TA2, TK2, Tmol2, Tcd2, T2>& b){
+	return decltype(a/b){a.get_value() / b.get_value()};
 }
 
 
