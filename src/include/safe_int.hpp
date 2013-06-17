@@ -201,7 +201,7 @@ class safe_int{
 			return safe_int{val--};
 		}
 		
-		constexpr safe_int& operator+(){
+		constexpr safe_int& operator+() const {
 			return *this;
 		}
 		
@@ -250,7 +250,7 @@ class safe_int{
 			return *this;
 		}
 		
-		constexpr safe_int operator~(){
+		constexpr safe_int operator~() const{
 			return safe_int{~val};
 		}
 		
