@@ -122,7 +122,7 @@ std::enable\_if and static asserts to check whether the called function is enabl
 
 ####Template-arguments
 
-The classtemplate takes three template-arguments:
+The classtemplate takes four template-arguments:
 
 1. T = the underlying type. This may be any type that overloads the arithmetic-operators like the built-in 
 	number-types do, but the usage of the built-in ones is usually a good choice.
@@ -148,43 +148,31 @@ The existing flags are (this might be slightly outdated but not to such a degree
 * ENABLE\_GENERAL\_CONSTRUCTION = Enables the construction from any type.
 * ENABLE\_DEFAULT\_CONSTRUCTION = Enables the default-construction.
 * ENABLE\_LATE\_ASSIGNEMENT = Enables late assignement from other types.
-
 * ENABLE\_SPECIFIC\_EQUALITY\_CHECK = Enables an equality-check with other instances.
 * ENABLE\_SPECIFIC\_ORDERING = Provides the ordering with any other instances.
-
 * ENABLE\_EQUALITY\_CHECK = Enables an equality-check with most other types.
 * ENABLE\_ORDERING = Provides an ordering with most other types.
-
 * ENABLE\_INC\_DEC = Enables the usage of the pre/post-increment/decrement-operators.
 * ENABLE\_SPECIFIC\_PLUS\_MINUS = Enables addition and subtraction with other instances.
-
 * ENABLE\_SPECIFIC\_MULTIPLICATION = Enables multiplication with other instances.
 * ENABLE\_ENABLE\_SPECIFIC\_DIVISION = Enables dividing by other instances.
-
 * ENABLE\_INTEGER\_MULTIPLICATION = Enables multiplication with integers.
 * ENABLE\_INTEGER\_DIVISION = Enables dividing by integers.
 * ENABLE\_INTEGER\_MULT\_DIV = This combines the two flags above.
-
 * ENABLE\_FLOAT\_MULTIPLICATION = Enables multiplication by integers and floating-point-types.
 * ENABLE\_FLOAT\_DIVISION = Enables dividing by integers and floating-point-types.
 * ENABLE\_FLOAT\_MULT\_DIV = This combines the two flags above.
-
 * ENABLE\_GENERAL\_PLUS\_MINUS = Enables adding most other types.
 * ENABLE\_GENERAL\_MULTIPLICATION = Enables multiplication with other types.
 * ENABLE\_GENERAL\_DIVISION = Enables dividing by other types.
 * ENABLE\_GENERAL\_MULT\_DIV = This combines the two flags above.
-
 * ENABLE\_SPECIFIC\_MODULO = Enables the calculation of the modulo with other instances.
 * ENABLE\_MODULO = Enable the calculation of the modulo with any supporting type.
-
 * ENABLE\_NATIVE\_TYPING = Enables native type-behaviour. (eg. `decltype(mytype<int> * double) === mytype<double>`)
-
 * DISABLE\_CONSTRUCTION = Disables the creation of instances.
 * DISABLE\_MUTABILITY = Disables all later changes to the value of the variable.
-
 * DEFAULT\_SETTINGS = The default settings: this enables inc/dec, specific plus/minus and integer
 	multiplication and division
-
 * ENABLE\_ALL\_SPECIFIC\_MATH = Enables all specific math.
 * ENABLE\_ALL\_MATH = Enables all math.
 * ENABLE\_ALL =  enables everything.
