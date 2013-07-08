@@ -23,18 +23,18 @@ public:
 /**
  * @brief Signals that the data in an istream cannot be converted to the requested type.
  */
-class format_error: public std::runtime_error{
-public:
+struct format_error: std::runtime_error{
+	//using runtime_error::runtime_error;
 	format_error(const std::string& msg): runtime_error(msg){}
 };
 
 template<typename T, class Tid>
-class physical_base : public type_builder::empty_base<T, Tid>{	
+class physical_base : public type_builder::empty_base<T, Tid>{
 public:
 	
 	template<typename Tchar>
 	static std::basic_string<Tchar> get_unit_str(){
-		static_assert(std::is_same<Tchar, char>::value, 
+		static_assert(std::is_same<Tchar, char>::value,
 				"priting is done with utf8");
 		using std::to_string;
 		
@@ -65,7 +65,7 @@ public:
 		return returnstring;
 		
 	}
-
+	
 	template<typename Tchar>
 	static std::basic_string<Tchar> format(const T& value){
 		return (std::to_string(value) + get_unit_str<Tchar>());
