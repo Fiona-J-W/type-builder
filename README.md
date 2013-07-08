@@ -8,14 +8,14 @@ Let's take a look at a pretty realistic example: Implementing a point-class. Man
 ```c++
 template<typename T>
 struct point{
-	point(T x, T y): x(x), y(y) {}
-	//public attributes to keep this short (this is an example):
+	point(T x, T y): x{x}, y{y} {}
+	
 	T x;
 	T y;
 };
 
 int main(){
-	point<double> p(1.0, 2.0);
+	point<double> p{1.0, 2.0};
 	// use p
 }
 
@@ -28,7 +28,7 @@ int main(){
 	int x = 1;
 	int y = 2;
 	// simple to spot here; this won't be allways so:
-	point<int> p(y, x);
+	point<int> p{y, x};
 	// use p
 }
 ```
@@ -45,20 +45,21 @@ class y_coord{
 };
 
 struct point{
-	point(x_coord x, y_coord y): x(x), y(y) {}
-	//public attributes to keep this short (this is an example):
+	point(x_coord x, y_coord y): x{x}, y{y} {}
+	
 	x_coord x;
 	y_coord y;
 };
 
 int main(){
-	x_coord x(1.0);
-	y_coord y(2.0);
+	x_coord x{1.0};
+	y_coord y{2.0};
+	
 	// ERROR:
-	// point p(y, x);
+	// point p{y, x};
 	
 	// this works like a charm:
-	point p(x, y);
+	point p{x, y};
 
 ```
 
@@ -75,20 +76,21 @@ struct y_coord_id{};
 using y_coord = type_builder::basic_number<int, y_coord_id, type_builder::ENABLE_ALL_SPECIFIC_MATH>;
 
 struct point{
-	point(x_coord x, y_coord y): x(x), y(y) {}
-	//public attributes to keep this short (this is an example):
+	point(x_coord x, y_coord y): x{x}, y{y} {}
+	
 	x_coord x;
 	y_coord y;
 };
 
 int main(){
-	x_coord x(1.0);
-	y_coord y(2.0);
+	x_coord x{1.0};
+	y_coord y{2.0};
+	
 	// ERROR:
-	// point p(y, x);
+	// point p{y, x};
 	
 	// this works like a charm:
-	point p(x, y);
+	point p{x, y};
 	
 	// use p
 }
@@ -138,8 +140,8 @@ The classtemplate takes three template-arguments:
 This enum contains several constants that controll the operations that are possible to use on a 
 class-template-instance; they are designed to be used as bit-masks and there are already several combined flags.
 
-The values of the constants are undefined behaviour and may change between versions without any further notion. 
-*Don't rely on them*!
+The values of the constants are completly unspecified and may change between versions without any 
+further notice. *Don't rely on them*!
 
 The existing flags are (this might be slightly outdated but not to such a degree that it would be unusable):
 
@@ -175,7 +177,7 @@ The existing flags are (this might be slightly outdated but not to such a degree
 * ENABLE\_SPECIFIC\_MODULO = Enables the calculation of the modulo with other instances.
 * ENABLE\_MODULO = Enable the calculation of the modulo with any supporting type.
 
-* ENABLE\_NATIVE\_TYPING = Enables native type-behaviour. (eg. `mytype<int> * double = mytype<double>`)
+* ENABLE\_NATIVE\_TYPING = Enables native type-behaviour. (eg. `decltype(mytype<int> * double) === mytype<double>`)
 
 * DISABLE\_CONSTRUCTION = Disables the creation of instances.
 * DISABLE\_MUTABILITY = Disables all later changes to the value of the variable.
