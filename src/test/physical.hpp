@@ -24,8 +24,7 @@ public:
  * @brief Signals that the data in an istream cannot be converted to the requested type.
  */
 struct format_error: std::runtime_error{
-	//using runtime_error::runtime_error;
-	format_error(const std::string& msg): runtime_error(msg){}
+	using runtime_error::runtime_error;
 };
 
 template<typename T, class Tid>
